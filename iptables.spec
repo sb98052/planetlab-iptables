@@ -1,13 +1,22 @@
+%define name iptables
+%define version 1.2.9
+%define release 2.3.1.1.planetlab%{?date:.%{date}}
+
+Vendor: PlanetLab
+Packager: PlanetLab Central <support@planet-lab.org>
+Distribution: PlanetLab 3.0
+URL: http://cvs.planet-lab.org/cvs/iptables
+
 %define build_devel 1
 %define linux_header 0
 
-Name: iptables
+Name: %{name}
 Summary: Tools for managing Linux kernel packet filtering capabilities.
-Version: 1.2.9
-Release: 2.3.1
+Version: %{version}
+Release: %{release}
 Source: http://www.netfilter.org/%{name}-%{version}.tar.bz2
-Source1: iptables.init
-Source2: iptables-config
+%define SOURCE1 iptables.init
+%define SOURCE2 iptables-config
 %if %{linux_header}
 Source3: netfilter-2.4.20.tar.gz
 %endif
@@ -17,7 +26,7 @@ Patch4: iptables-1.2.9-netlink.patch
 Patch5: iptables-1.2.9-selinux.patch
 Patch6: iptables-1.2.9-counters.patch
 Group: System Environment/Base
-URL: http://www.netfilter.org/
+#URL: http://www.netfilter.org/
 BuildRoot: %{_tmppath}/%{name}-buildroot
 License: GPL
 BuildPrereq: /usr/bin/perl
@@ -62,28 +71,30 @@ you should install this package.
 rm -rf %{buildroot}
 
 %setup -q
-%if %{linux_header}
-cd include 
-tar -zxf %{SOURCE3}
-cd ..
-%endif
-%patch2 -p1 -b .nolibnsl
-%patch3 -p1 -b .print_type
-%patch4 -p1 -b .netlink
-%patch5 -p1 -b .selinux
-%patch6 -p1 -b .counters
 
 # Put it to a reasonable place
-find . -type f -exec perl -pi -e "s,/usr/local,%{prefix},g" {} \;
+find . -type f -exec perl -pi -e "s,/usr,%{prefix},g" {} \;
 
 %build
 TOPDIR=`pwd`
 OPT="$RPM_OPT_FLAGS -I$TOPDIR/include"
+# bootstrap to avoid BuildRequires of kernel-source
+for KERNEL_DIR in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build /usr ; do
+    if [ -f $KERNEL_DIR/include/linux/version.h ] ; then
+	break
+    fi
+done
 make COPT_FLAGS="$OPT" KERNEL_DIR=/usr LIBDIR=/%{_lib}
 make COPT_FLAGS="$OPT" KERNEL_DIR=/usr LIBDIR=/%{_lib} iptables-save iptables-restore
 make COPT_FLAGS="$OPT" KERNEL_DIR=/usr LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
 
 %install
+# bootstrap to avoid BuildRequires of kernel-source
+for KERNEL_DIR in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build /usr ; do
+    if [ -f $KERNEL_DIR/include/linux/version.h ] ; then
+	break
+    fi
+done
 make install DESTDIR=%{buildroot} KERNEL_DIR=/usr BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
 %if %{build_devel}
 make install-devel DESTDIR=%{buildroot} KERNEL_DIR=/usr BINDIR=/sbin LIBDIR=%{_libdir} MANDIR=%{_mandir}
