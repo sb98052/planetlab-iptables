@@ -15,16 +15,6 @@ Summary: Tools for managing Linux kernel packet filtering capabilities.
 Version: %{version}
 Release: %{release}
 Source: http://www.netfilter.org/%{name}-%{version}.tar.bz2
-%define SOURCE1 iptables.init
-%define SOURCE2 iptables-config
-%if %{linux_header}
-Source3: netfilter-2.4.20.tar.gz
-%endif
-Patch2: iptables-1.2.8-nolibnsl.patch
-Patch3: iptables-1.2.8-print_type.patch
-Patch4: iptables-1.2.9-netlink.patch
-Patch5: iptables-1.2.9-selinux.patch
-Patch6: iptables-1.2.9-counters.patch
 Group: System Environment/Base
 #URL: http://www.netfilter.org/
 BuildRoot: %{_tmppath}/%{name}-buildroot
