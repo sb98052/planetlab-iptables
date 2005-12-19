@@ -15,6 +15,8 @@ Summary: Tools for managing Linux kernel packet filtering capabilities.
 Version: %{version}
 Release: %{release}
 Source: http://www.netfilter.org/%{name}-%{version}.tar.bz2
+%define SOURCE1 iptables.init
+%define SOURCE2 iptables-config
 Group: System Environment/Base
 #URL: http://www.netfilter.org/
 BuildRoot: %{_tmppath}/%{name}-buildroot
