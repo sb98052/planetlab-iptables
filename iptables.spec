@@ -89,7 +89,7 @@ for KERNEL_DIR in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build /usr ; do
 done
 make install DESTDIR=%{buildroot} KERNEL_DIR=$KERNEL_DIR BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
 %if %{build_devel}
-make install-devel DESTDIR=%{buildroot} KERNEL_DIR=$KERNEL_DIR BINDIR=/sbin LIBDIR=%{_libdir} MANDIR=%{_mandir}
+make install-devel DESTDIR=%{buildroot} KERNEL_DIR=$KERNEL_DIR BINDIR=/sbin LIBDIR=%{_libdir} MANDIR=%{_mandir} INCDIR=%{_includedir}
 %endif
 cp ip{6,}tables-{save,restore} $RPM_BUILD_ROOT/sbin
 cp iptables-*.8 $RPM_BUILD_ROOT%{_mandir}/man8
@@ -130,6 +130,10 @@ fi
 %{_mandir}/man8/iptables*
 %dir /%{_lib}/iptables
 /%{_lib}/iptables/libipt*
+/sbin/ipset*
+%{_mandir}/man8/ipset*
+%dir /%{_lib}/ipset
+/%{_lib}/ipset/libipset*
 
 %files ipv6
 %defattr(-,root,root,0755)
