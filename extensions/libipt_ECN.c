@@ -6,7 +6,7 @@
  *
  * libipt_ECN.c borrowed heavily from libipt_DSCP.c
  *
- * $Id: libipt_ECN.c,v 1.12 2003/01/13 12:35:28 laforge Exp $
+ * $Id: libipt_ECN.c 3507 2004-12-28 13:11:59Z /C=DE/ST=Berlin/L=Berlin/O=Netfilter Project/OU=Development/CN=rusty/emailAddress=rusty@netfilter.org $
  */
 #include <stdio.h>
 #include <string.h>
@@ -164,19 +164,19 @@ save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
 }
 
 static
-struct iptables_target ecn
-= { NULL,
-    "ECN",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ipt_ECN_info)),
-    IPT_ALIGN(sizeof(struct ipt_ECN_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+struct iptables_target ecn = { 
+	.next		= NULL,
+	.name		= "ECN",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ipt_ECN_info)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_ECN_info)),
+	.help		= &help,
+	.init		= &init,
+	.parse		= &parse,
+	.final_check	= &final_check,
+	.print		= &print,
+	.save		= &save,
+	.extra_opts	= opts
 };
 
 void _init(void)

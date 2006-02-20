@@ -37,8 +37,13 @@
 #include <string.h>
 #include <iptables.h>
 
+#ifdef IPTABLES_MULTI
+int
+iptables_main(int argc, char *argv[])
+#else
 int
 main(int argc, char *argv[])
+#endif
 {
 	int ret;
 	char *table = "filter";
@@ -46,6 +51,10 @@ main(int argc, char *argv[])
 
 	program_name = "iptables";
 	program_version = IPTABLES_VERSION;
+
+	lib_dir = getenv("IPTABLES_LIB_DIR");
+	if (!lib_dir)
+		lib_dir = IPT_LIB_DIR;
 
 #ifdef NO_SHARED_LIBS
 	init_extensions();

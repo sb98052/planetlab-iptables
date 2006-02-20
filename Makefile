@@ -14,10 +14,10 @@ TOPLEVEL_INCLUDED=YES
 ifndef KERNEL_DIR
 KERNEL_DIR=/usr/src/linux
 endif
-IPTABLES_VERSION:=1.2.9
-OLD_IPTABLES_VERSION:=1.2.8
+IPTABLES_VERSION:=1.3.2
+OLD_IPTABLES_VERSION:=1.3.1
 
-PREFIX:=/usr
+PREFIX:=/usr/local
 LIBDIR:=$(PREFIX)/lib
 BINDIR:=$(PREFIX)/sbin
 MANDIR:=$(PREFIX)/man
@@ -38,30 +38,17 @@ ifdef NO_SHARED_LIBS
 CFLAGS += -DNO_SHARED_LIBS=1
 endif
 
-ifndef NO_SHARED_LIBS
-DEPFILES = $(SHARED_LIBS:%.so=%.d)
-SH_CFLAGS:=$(CFLAGS) -fPIC
-STATIC_LIBS  =
-STATIC6_LIBS =
-LDFLAGS      = -rdynamic
-LDLIBS       = -ldl
-else
-DEPFILES = $(EXT_OBJS:%.o=%.d)
-STATIC_LIBS  = extensions/libext.a
-STATIC6_LIBS = extensions/libext6.a
-LDFLAGS      = -static
-LDLIBS       =
-endif
-
-EXTRAS+=iptables iptables.o
+EXTRAS+=iptables iptables.o iptables.8
 EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/iptables $(DESTDIR)$(MANDIR)/man8/iptables.8
 
 # No longer experimental.
+ifneq ($(DO_MULTI), 1)
 EXTRAS+=iptables-save iptables-restore
+endif
 EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/iptables-save $(DESTDIR)$(BINDIR)/iptables-restore $(DESTDIR)$(MANDIR)/man8/iptables-restore.8 $(DESTDIR)$(MANDIR)/man8/iptables-save.8
 
 ifeq ($(DO_IPV6), 1)
-EXTRAS+=ip6tables ip6tables.o
+EXTRAS+=ip6tables ip6tables.o ip6tables.8
 EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/ip6tables $(DESTDIR)$(MANDIR)/man8/ip6tables.8
 EXTRAS_EXP+=ip6tables-save ip6tables-restore
 EXTRA_INSTALLS_EXP+=$(DESTDIR)$(BINDIR)/ip6tables-save $(DESTDIR)$(BINDIR)/ip6tables-restore # $(DESTDIR)$(MANDIR)/man8/iptables-restore.8 $(DESTDIR)$(MANDIR)/man8/iptables-save.8 $(DESTDIR)$(MANDIR)/man8/ip6tables-save.8 $(DESTDIR)$(MANDIR)/man8/ip6tables-restore.8
@@ -69,18 +56,54 @@ endif
 
 # Sparc64 hack
 ifeq ($(shell uname -m),sparc64)
-# The kernel is 64-bit, even though userspace is 32.
-CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
+	POINTERTEST:=1
+	32bituser := $(shell echo -e "\#include <stdio.h>\n\#if !defined(__sparcv9) && !defined(__arch64__) && !defined(_LP64)\nuserspace_is_32bit\n\#endif" | $(CC) $(CFLAGS) -E - | grep userspace_is_32bit)
+	ifdef 32bituser
+		# The kernel is 64-bit, even though userspace is 32.
+		CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
+	else
+		EXT_LDFLAGS=-m elf64_sparc
+	endif
 endif
 
-# HPPA hack
-ifeq ($(shell uname -m),parisc64)
-# The kernel is 64-bit, even though userspace is 32.
-CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
+# Alpha only has 64bit userspace and fails the test below
+ifeq ($(shell uname -m), alpha)
+	POINTERTEST:=1
+endif
+
+# Generic test if arch wasn't found above
+ifneq ($(POINTERTEST),1)
+	# Try to determine if kernel is 64bit and we are compiling for 32bit
+	ifeq ($(shell [ -a $(KERNEL_DIR)/include/asm ] && echo YES), YES)
+		64bitkernel := $(shell echo -e "\#include <asm/types.h>\n\#if BITS_PER_LONG == 64\nkernel_is_64bits\n\#endif" | $(CC) $(CFLAGS) -D__KERNEL__ -E - | grep kernel_is_64bits)
+		ifdef 64bitkernel
+			32bituser := $(shell echo -e "\#include <stdio.h>\n\#if !defined(__arch64__) && !defined(_LP64)\nuserspace_is_32bit\n\#endif" | $(CC) $(CFLAGS) -E - | grep userspace_is_32bit)
+			ifdef 32bituser
+				CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
+			endif
+		endif
+	else
+		CFLAGS+=-D_UNKNOWN_KERNEL_POINTER_SIZE
+	endif
 endif
 
 ifndef IPT_LIBDIR
 IPT_LIBDIR:=$(LIBDIR)/iptables
+endif
+
+ifndef NO_SHARED_LIBS
+DEPFILES = $(SHARED_LIBS:%.so=%.d)
+SH_CFLAGS:=$(CFLAGS) -fPIC
+STATIC_LIBS  =
+STATIC6_LIBS =
+LDFLAGS      = -rdynamic
+LDLIBS       = -ldl -lnsl
+else
+DEPFILES = $(EXT_OBJS:%.o=%.d)
+STATIC_LIBS  = extensions/libext.a
+STATIC6_LIBS = extensions/libext6.a
+LDFLAGS      = -static
+LDLIBS       =
 endif
 
 .PHONY: default
@@ -93,8 +116,13 @@ print-extensions:
 iptables.o: iptables.c
 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" -c -o $@ $<
 
+ifeq ($(DO_MULTI), 1)
+iptables: iptables-multi.c iptables-save.c iptables-restore.c iptables-standalone.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
+	$(CC) $(CFLAGS) -DIPTABLES_MULTI -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
+else
 iptables: iptables-standalone.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
+endif
 
 $(DESTDIR)$(BINDIR)/iptables: iptables
 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
@@ -103,16 +131,28 @@ $(DESTDIR)$(BINDIR)/iptables: iptables
 iptables-save: iptables-save.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+ifeq ($(DO_MULTI), 1)
+$(DESTDIR)$(BINDIR)/iptables-save: iptables
+	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
+	ln -sf $< $@
+else
 $(DESTDIR)$(BINDIR)/iptables-save: iptables-save
 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
 	cp $< $@
+endif
 
 iptables-restore: iptables-restore.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+ifeq ($(DO_MULTI), 1)
+$(DESTDIR)$(BINDIR)/iptables-restore: iptables
+	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
+	ln -sf $< $@
+else
 $(DESTDIR)$(BINDIR)/iptables-restore: iptables-restore
 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
 	cp $< $@
+endif
 
 ip6tables.o: ip6tables.c
 	$(CC) $(CFLAGS) -DIP6T_LIB_DIR=\"$(IPT_LIBDIR)\" -c -o $@ $<
@@ -147,6 +187,11 @@ EXTRA_DEPENDS+=iptables-standalone.d iptables.d
 iptables-standalone.d iptables.d: %.d: %.c
 	@-$(CC) -M -MG $(CFLAGS) $< | sed -e 's@^.*\.o:@$*.d $*.o:@' > $@
 
+iptables.8: iptables.8.in extensions/libipt_matches.man extensions/libipt_targets.man
+	sed -e '/@MATCH@/ r extensions/libipt_matches.man' -e '/@TARGET@/ r extensions/libipt_targets.man' iptables.8.in >iptables.8
+
+ip6tables.8: ip6tables.8.in extensions/libip6t_matches.man extensions/libip6t_targets.man
+	sed -e '/@MATCH@/ r extensions/libip6t_matches.man' -e '/@TARGET@/ r extensions/libip6t_targets.man' ip6tables.8.in >ip6tables.8
 
 # Development Targets
 .PHONY: install-devel-man3
@@ -190,7 +235,7 @@ delrelease:
 	rm -f $(RELEASE_DIR)/iptables-$(IPTABLES_VERSION).tar.bz2
 
 $(RELEASE_DIR)/iptables-$(IPTABLES_VERSION).tar.bz2:
-	cd .. && ln -sf userspace iptables-$(IPTABLES_VERSION) && tar cvf - --exclude CVS iptables-$(IPTABLES_VERSION)/. | bzip2 -9 > $@ && rm iptables-$(IPTABLES_VERSION)
+	cd .. && ln -sf iptables iptables-$(IPTABLES_VERSION) && tar cvf - --exclude .svn iptables-$(IPTABLES_VERSION)/. | bzip2 -9 > $@ && rm iptables-$(IPTABLES_VERSION)
 
 .PHONY: diff
 diff: $(RELEASE_DIR)/iptables-$(IPTABLES_VERSION).tar.bz2

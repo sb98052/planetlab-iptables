@@ -11,7 +11,8 @@
 #include <iptables.h>
 #include <linux/netfilter_ipv4/ip_conntrack.h>
 #include <linux/netfilter_ipv4/ip_conntrack_tuple.h>
-#include <linux/netfilter_ipv4/ipt_conntrack.h>
+/* For 64bit kernel / 32bit userspace */
+#include "../include/linux/netfilter_ipv4/ipt_conntrack.h"
 
 #ifndef IPT_CONNTRACK_STATE_UNTRACKED
 #define IPT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
@@ -54,14 +55,6 @@ static struct option opts[] = {
 	{ "ctexpire", 1, 0, '8' },
 	{0}
 };
-
-/* Initialize the match. */
-static void
-init(struct ipt_entry_match *m, unsigned int *nfcache)
-{
-	/* Can't cache this */
-	*nfcache |= NFC_UNKNOWN;
-}
 
 static int
 parse_state(const char *state, size_t strlen, struct ipt_conntrack_info *sinfo)
@@ -135,17 +128,29 @@ parse_statuses(const char *arg, struct ipt_conntrack_info *sinfo)
 		exit_error(PARAMETER_PROBLEM, "Bad ctstatus `%s'", arg);
 }
 
-
+#ifdef KERNEL_64_USERSPACE_32
+static unsigned long long
+parse_expire(const char *s)
+{
+	unsigned long long len;
+	
+	if (string_to_number_ll(s, 0, 0, &len) == -1)
+		exit_error(PARAMETER_PROBLEM, "expire value invalid: `%s'\n", s);
+	else
+		return len;
+}
+#else
 static unsigned long
 parse_expire(const char *s)
 {
 	unsigned int len;
 	
-	if (string_to_number(s, 0, 0xFFFFFFFF, &len) == -1)
+	if (string_to_number(s, 0, 0, &len) == -1)
 		exit_error(PARAMETER_PROBLEM, "expire value invalid: `%s'\n", s);
 	else
 		return len;
 }
+#endif
 
 /* If a single value is provided, min and max are both set to the value */
 static void
@@ -162,15 +167,19 @@ parse_expires(const char *s, struct ipt_conntrack_info *sinfo)
 		cp++;
 
 		sinfo->expires_min = buffer[0] ? parse_expire(buffer) : 0;
-		sinfo->expires_max = cp[0] ? parse_expire(cp) : 0xFFFFFFFF;
+		sinfo->expires_max = cp[0] ? parse_expire(cp) : -1;
 	}
 	free(buffer);
 	
 	if (sinfo->expires_min > sinfo->expires_max)
 		exit_error(PARAMETER_PROBLEM,
+#ifdef KERNEL_64_USERSPACE_32
+		           "expire min. range value `%llu' greater than max. "
+		           "range value `%llu'", sinfo->expires_min, sinfo->expires_max);
+#else
 		           "expire min. range value `%lu' greater than max. "
 		           "range value `%lu'", sinfo->expires_min, sinfo->expires_max);
-	
+#endif
 }
 
 /* Function which parses command options; returns true if it
@@ -475,7 +484,7 @@ matchinfo_print(const struct ipt_ip *ip, const struct ipt_entry_match *match, in
 
 	if(sinfo->flags & IPT_CONNTRACK_STATUS) {
 		printf("%sctstatus ", optpfx);
-        	if (sinfo->invflags & IPT_CONNTRACK_STATE)
+        	if (sinfo->invflags & IPT_CONNTRACK_STATUS)
                 	printf("! ");
 		print_status(sinfo->statusmask);
 	}
@@ -485,10 +494,17 @@ matchinfo_print(const struct ipt_ip *ip, const struct ipt_entry_match *match, in
         	if (sinfo->invflags & IPT_CONNTRACK_EXPIRES)
                 	printf("! ");
 
+#ifdef KERNEL_64_USERSPACE_32
+        	if (sinfo->expires_max == sinfo->expires_min)
+                	printf("%llu ", sinfo->expires_min);
+        	else
+                	printf("%llu:%llu ", sinfo->expires_min, sinfo->expires_max);
+#else
         	if (sinfo->expires_max == sinfo->expires_min)
                 	printf("%lu ", sinfo->expires_min);
         	else
                 	printf("%lu:%lu ", sinfo->expires_min, sinfo->expires_max);
+#endif
 	}
 }
 
@@ -504,23 +520,21 @@ print(const struct ipt_ip *ip,
 /* Saves the matchinfo in parsable form to stdout. */
 static void save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
 {
-	matchinfo_print(ip, match, 0, "--");
+	matchinfo_print(ip, match, 1, "--");
 }
 
-static
-struct iptables_match conntrack
-= { NULL,
-    "conntrack",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ipt_conntrack_info)),
-    IPT_ALIGN(sizeof(struct ipt_conntrack_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct iptables_match conntrack = { 
+	.next 		= NULL,
+	.name		= "conntrack",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ipt_conntrack_info)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_conntrack_info)),
+	.help		= &help,
+	.parse		= &parse,
+	.final_check	= &final_check,
+	.print		= &print,
+	.save		= &save,
+	.extra_opts	= opts
 };
 
 void _init(void)
