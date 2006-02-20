@@ -43,8 +43,6 @@ init(struct ipt_entry_match *match, unsigned int *nfcache)
 	info->src = IP_POOL_NONE;
 	info->dst = IP_POOL_NONE;
 	info->flags = 0;
-	/* Can't cache this - XXX */
-	*nfcache |= NFC_UNKNOWN;
 }
 
 /* Function which parses command options; returns true if it ate an option */
@@ -122,20 +120,19 @@ static void save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
 			ip_pool_get_name(buf, sizeof(buf), info->dst, 0));
 }
 
-static
-struct iptables_match pool
-= { NULL,
-    "pool",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ipt_pool_info)),
-    IPT_ALIGN(sizeof(struct ipt_pool_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct iptables_match pool = { 
+	.next		= NULL,
+	.name		= "pool",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ipt_pool_info)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_pool_info)),
+	.help		= &help,
+	.init		= &init,
+	.parse		= &parse,
+	.final_check	= &final_check,
+	.print		= &print,
+	.save		= &save,
+	.extra_opts	= opts
 };
 
 void _init(void)
