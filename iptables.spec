@@ -1,6 +1,6 @@
 %define name iptables
-%define version 1.2.9
-%define release 2.3.1.1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define version 1.3.2
+%define release 20050720.1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -76,9 +76,9 @@ for KERNEL_DIR in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build /usr ; do
 	break
     fi
 done
-make COPT_FLAGS="$OPT" KERNEL_DIR=/usr LIBDIR=/%{_lib}
-make COPT_FLAGS="$OPT" KERNEL_DIR=/usr LIBDIR=/%{_lib} iptables-save iptables-restore
-make COPT_FLAGS="$OPT" KERNEL_DIR=/usr LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
+make COPT_FLAGS="$OPT" KERNEL_DIR=$KERNEL_DIR LIBDIR=/%{_lib}
+make COPT_FLAGS="$OPT" KERNEL_DIR=$KERNEL_DIR LIBDIR=/%{_lib} iptables-save iptables-restore
+make COPT_FLAGS="$OPT" KERNEL_DIR=$KERNEL_DIR LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
 
 %install
 # bootstrap to avoid BuildRequires of kernel-source
@@ -87,9 +87,9 @@ for KERNEL_DIR in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build /usr ; do
 	break
     fi
 done
-make install DESTDIR=%{buildroot} KERNEL_DIR=/usr BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
+make install DESTDIR=%{buildroot} KERNEL_DIR=$KERNEL_DIR BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
 %if %{build_devel}
-make install-devel DESTDIR=%{buildroot} KERNEL_DIR=/usr BINDIR=/sbin LIBDIR=%{_libdir} MANDIR=%{_mandir}
+make install-devel DESTDIR=%{buildroot} KERNEL_DIR=$KERNEL_DIR BINDIR=/sbin LIBDIR=%{_libdir} MANDIR=%{_mandir}
 %endif
 cp ip{6,}tables-{save,restore} $RPM_BUILD_ROOT/sbin
 cp iptables-*.8 $RPM_BUILD_ROOT%{_mandir}/man8
