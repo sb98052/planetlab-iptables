@@ -21,7 +21,7 @@ IPSET_LIB_DIR:=$(LIBDIR)/ipset
 RELEASE_DIR:=/tmp
 
 COPT_FLAGS:=-O2
-CFLAGS:=$(COPT_FLAGS) -Wall -Wunused -I$(KERNEL_DIR)/include -I. # -g -DIPSET_DEBUG #-pg # -DIPTC_DEBUG
+CFLAGS:=$(COPT_FLAGS) -D__KERNGLUE__ -Wall -Wunused -I$(KERNEL_DIR)/include -I. # -g -DIPSET_DEBUG #-pg # -DIPTC_DEBUG
 SH_CFLAGS:=$(CFLAGS) -fPIC
 SETTYPES:=ipmap portmap macipmap iphash nethash iptree ipporthash
 
