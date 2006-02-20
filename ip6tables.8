@@ -372,6 +372,268 @@ The following are included in the base package, and most of these can
 be preceded by a
 .B !
 to invert the sense of the match.
+.\" @MATCH@
+.SS ah
+This module matches the SPIs in AH header of IPSec packets.
+.TP
+.BR "--ahspi " "[!] \fIspi\fP[:\fIspi\fP]"
+.SS condition
+This matches if a specific /proc filename is '0' or '1'.
+.TP
+.BI "--condition " "[!] filename"
+Match on boolean value stored in /proc/net/ip6t_condition/filename file
+.SS dst
+This module matches the IPv6 destination header options
+.TP
+.BI "--dst-len" "[!]" "length"
+Total length of this header
+.TP
+.BI "--dst-opts " "TYPE[:LEN],[,TYPE[:LEN]...]"
+Options and it's length (List).
+.SS esp
+This module matches the SPIs in ESP header of IPSec packets.
+.TP
+.BR "--espspi " "[!] \fIspi\fP[:\fIspi\fP]"
+.SS eui64
+This module matches the EUI64 part of a stateless autoconfigured IPv6 address.  It compares the source MAC address with the lower 64 bits of the IPv6 address. 
+.SS frag
+This module matches the time IPv6 fragmentathion header
+.TP
+.BI "--fragid " "[!]" "id[:id]"
+Matches the given fragmentation ID (range).
+.TP
+.BI "--fraglen " "[!]" "length"
+Matches the total length of this header.
+.TP
+.BI "--fragres "
+Matches the reserved field, too.
+.TP
+.BI "--fragfirst "
+Matches on the first fragment.
+.TP
+.BI "[--fragmore]"
+Matches if there are more fragments.
+.TP
+.BI "[--fraglast]"
+Matches if this is the last fragement.
+.SS fuzzy
+This module matches a rate limit based on a fuzzy logic controller [FLC]
+.TP
+.BI "--lower-limit  "number"
+Specifies the lower limit (in packets per second).
+.TP
+.BI "--upper-limit " "number"
+Specifies the upper limit (in packets per second).
+.SS hbh
+This module matches the IPv6 hop-by-hop header options
+.TP
+.BI "--hbh-len" "[!]" "length"
+Total length of this header
+.TP
+.BI "--hbh-opts " "TYPE[:LEN],[,TYPE[:LEN]...]"
+Options and it's length (List).
+.SS hl
+This module matches the HOPLIMIT field in the IPv6 header.
+.TP
+.BI "--hl-eq " "value"
+Matches if HOPLIMIT equals the given value.
+.TP
+.BI "--hl-lt " "ttl"
+Matches if HOPLIMIT is less than the given value.
+.TP
+.BI "--hl-gt " "ttl"
+Matches if HOPLIMIT is greater than the given value.
+.SS icmpv6
+This extension is loaded if `--protocol ipv6-icmp' or `--protocol icmpv6' is
+specified. It provides the following option:
+.TP
+.BR "--icmpv6-type " "[!] \fItypename\fP"
+This allows specification of the ICMP type, which can be a numeric
+IPv6-ICMP type, or one of the IPv6-ICMP type names shown by the command
+.nf
+ ip6tables -p ipv6-icmp -h
+.fi
+.SS ipv6header
+This module matches on IPv6 option headers
+.TP
+.BI "--header " "[!]" "headers"
+Matches the given type of headers.  
+Names: hop,dst,route,frag,auth,esp,none,proto
+Long Names: hop-by-hop,ipv6-opts,ipv6-route,ipv6-frag,ah,esp,ipv6-nonxt,protocol
+Numbers: 0,60,43,44,51,50,59
+.TP
+.BI "--soft"
+The header CONTAINS the specified extensions.
+.SS length
+This module matches the length of a packet against a specific value
+or range of values.
+.TP
+.BR "--length " "\fIlength\fP[:\fIlength\fP]"
+.SS limit
+This module matches at a limited rate using a token bucket filter.
+A rule using this extension will match until this limit is reached
+(unless the `!' flag is used).  It can be used in combination with the
+.B LOG
+target to give limited logging, for example.
+.TP
+.BI "--limit " "rate"
+Maximum average matching rate: specified as a number, with an optional
+`/second', `/minute', `/hour', or `/day' suffix; the default is
+3/hour.
+.TP
+.BI "--limit-burst " "number"
+Maximum initial number of packets to match: this number gets
+recharged by one every time the limit specified above is not reached,
+up to this number; the default is 5.
+.SS mac
+.TP
+.BR "--mac-source " "[!] \fIaddress\fP"
+Match source MAC address.  It must be of the form XX:XX:XX:XX:XX:XX.
+Note that this only makes sense for packets coming from an Ethernet device
+and entering the
+.BR PREROUTING ,
+.B FORWARD
+or
+.B INPUT
+chains.
+.SS mark
+This module matches the netfilter mark field associated with a packet
+(which can be set using the
+.B MARK
+target below).
+.TP
+.BR "--mark " "\fIvalue\fP[/\fImask\fP]"
+Matches packets with the given unsigned mark value (if a mask is
+specified, this is logically ANDed with the mask before the
+comparison).
+.SS multiport
+This module matches a set of source or destination ports.  Up to 15
+ports can be specified.  A port range (port:port) counts as two
+ports.  It can only be used in conjunction with
+.B "-p tcp"
+or
+.BR "-p udp" .
+.TP
+.BR "--source-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
+Match if the source port is one of the given ports.  The flag
+.B --sports
+is a convenient alias for this option.
+.TP
+.BR "--destination-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
+Match if the destination port is one of the given ports.  The flag
+.B --dports
+is a convenient alias for this option.
+.TP
+.BR "--ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
+Match if the both the source and destination ports are equal to each
+other and to one of the given ports.
+.SS nth
+This module matches every `n'th packet
+.TP
+.BI "--every " "value"
+Match every `value' packet
+.TP
+.BI "[" "--counter " "num" "]"
+Use internal counter number `num'.  Default is `0'.
+.TP
+.BI "[" "--start " "num" "]"
+Initialize the counter at the number `num' insetad of `0'.  Most between `0'
+and `value'-1.
+.TP
+.BI "[" "--packet " "num" "]"
+Match on `num' packet.  Most be between `0' and `value'-1.
+.SS owner
+This module attempts to match various characteristics of the packet
+creator, for locally-generated packets.  It is only valid in the
+.B OUTPUT
+chain, and even this some packets (such as ICMP ping responses) may
+have no owner, and hence never match.  This is regarded as experimental.
+.TP
+.BI "--uid-owner " "userid"
+Matches if the packet was created by a process with the given
+effective user id.
+.TP
+.BI "--gid-owner " "groupid"
+Matches if the packet was created by a process with the given
+effective group id.
+.TP
+.BI "--pid-owner " "processid"
+Matches if the packet was created by a process with the given
+process id.
+.TP
+.BI "--sid-owner " "sessionid"
+Matches if the packet was created by a process in the given session
+group.
+.TP
+.B NOTE: pid, sid and command matching are broken on SMP
+.SS physdev
+This module matches on the bridge port input and output devices enslaved
+to a bridge device. This module is a part of the infrastructure that enables
+a transparent bridging IP firewall and is only useful for kernel versions
+above version 2.5.44.
+.TP
+.B --physdev-in name
+Name of a bridge port via which a packet is received (only for
+packets entering the
+.BR INPUT ,
+.B FORWARD
+and
+.B PREROUTING
+chains). If the interface name ends in a "+", then any
+interface which begins with this name will match. If the packet didn't arrive
+through a bridge device, this packet won't match this option, unless '!' is used.
+.TP
+.B --physdev-out name
+Name of a bridge port via which a packet is going to be sent (for packets
+entering the
+.BR FORWARD ,
+.B OUTPUT
+and
+.B POSTROUTING
+chains).  If the interface name ends in a "+", then any
+interface which begins with this name will match. Note that in the
+.BR nat " and " mangle
+.B OUTPUT
+chains one cannot match on the bridge output port, however one can in the
+.B "filter OUTPUT"
+chain. If the packet won't leave by a bridge device or it is yet unknown what
+the output device will be, then the packet won't match this option, unless
+'!' is used.
+.TP
+.B --physdev-is-in
+Matches if the packet has entered through a bridge interface.
+.TP
+.B --physdev-is-out
+Matches if the packet will leave through a bridge interface.
+.TP
+.B --physdev-is-bridged
+Matches if the packet is being bridged and therefore is not being routed.
+This is only useful in the FORWARD and POSTROUTING chains.
+.SS random
+This module randomly matches a certain percentage of all packets.
+.TP
+.BI "--average " "percent"
+Matches the given percentage.  If omitted, a probability of 50% is set. 
+.SS rt
+Match on IPv6 routing header
+.TP
+.BI "--rt-type " "[!]" "type"
+Match the type (numeric).
+.TP
+.BI "--rt-segsleft" "[!]" "num[:num]"
+Match the `segments left' field (range).
+.TP
+.BI "--rt-len" "[!]" "length"
+Match the length of this header
+.TP
+.BI "--rt-0-res"
+Match the reserved field, too (type=0)
+.TP
+.BI "--rt-0-addrs ADDR[,ADDR...]
+Match type=0 addresses (list).
+.TP
+.BI "--rt-0-not-strict"
+List of type=0 addresses is not a strict list.
 .SS tcp
 These extensions are loaded if `--protocol tcp' is specified. It
 provides the following options:
@@ -433,131 +695,28 @@ Destination port or port range specification.
 See the description of the
 .B --destination-port
 option of the TCP extension for details.
-.SS ipv6-icmp
-This extension is loaded if `--protocol ipv6-icmp' or `--protocol icmpv6' is
-specified. It provides the following option:
-.TP
-.BR "--icmpv6-type " "[!] \fItypename\fP"
-This allows specification of the ICMP type, which can be a numeric
-IPv6-ICMP type, or one of the IPv6-ICMP type names shown by the command
-.nf
- ip6tables -p ipv6-icmp -h
-.fi
-.SS mac
-.TP
-.BR "--mac-source " "[!] \fIaddress\fP"
-Match source MAC address.  It must be of the form XX:XX:XX:XX:XX:XX.
-Note that this only makes sense for packets coming from an Ethernet device
-and entering the
-.BR PREROUTING ,
-.B FORWARD
-or
-.B INPUT
-chains.
-.SS limit
-This module matches at a limited rate using a token bucket filter.
-A rule using this extension will match until this limit is reached
-(unless the `!' flag is used).  It can be used in combination with the
-.B LOG
-target to give limited logging, for example.
-.TP
-.BI "--limit " "rate"
-Maximum average matching rate: specified as a number, with an optional
-`/second', `/minute', `/hour', or `/day' suffix; the default is
-3/hour.
-.TP
-.BI "--limit-burst " "number"
-Maximum initial number of packets to match: this number gets
-recharged by one every time the limit specified above is not reached,
-up to this number; the default is 5.
-.SS multiport
-This module matches a set of source or destination ports.  Up to 15
-ports can be specified.  It can only be used in conjunction with
-.B "-p tcp"
-or
-.BR "-p udp" .
-.TP
-.BR "--source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-Match if the source port is one of the given ports.  The flag
-.B --sports
-is a convenient alias for this option.
-.TP
-.BR "--destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-Match if the destination port is one of the given ports.  The flag
-.B --dports
-is a convenient alias for this option.
-.TP
-.BR "--ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-Match if the both the source and destination ports are equal to each
-other and to one of the given ports.
-.SS mark
-This module matches the netfilter mark field associated with a packet
-(which can be set using the
-.B MARK
-target below).
-.TP
-.BR "--mark " "\fIvalue\fP[/\fImask\fP]"
-Matches packets with the given unsigned mark value (if a mask is
-specified, this is logically ANDed with the mask before the
-comparison).
-.SS owner
-This module attempts to match various characteristics of the packet
-creator, for locally-generated packets.  It is only valid in the
-.B OUTPUT
-chain, and even this some packets (such as ICMP ping responses) may
-have no owner, and hence never match.  This is regarded as experimental.
-.TP
-.BI "--uid-owner " "userid"
-Matches if the packet was created by a process with the given
-effective user id.
-.TP
-.BI "--gid-owner " "groupid"
-Matches if the packet was created by a process with the given
-effective group id.
-.TP
-.BI "--pid-owner " "processid"
-Matches if the packet was created by a process with the given
-process id.
-.TP
-.BI "--sid-owner " "sessionid"
-Matches if the packet was created by a process in the given session
-group.
-.\" .SS state
-.\" This module, when combined with connection tracking, allows access to
-.\" the connection tracking state for this packet.
-.\" .TP
-.\" .BI "--state " "state"
-.\" Where state is a comma separated list of the connection states to
-.\" match.  Possible states are 
-.\" .B INVALID
-.\" meaning that the packet is associated with no known connection,
-.\" .B ESTABLISHED
-.\" meaning that the packet is associated with a connection which has seen
-.\" packets in both directions,
-.\" .B NEW
-.\" meaning that the packet has started a new connection, or otherwise
-.\" associated with a connection which has not seen packets in both
-.\" directions, and
-.\" .B RELATED
-.\" meaning that the packet is starting a new connection, but is
-.\" associated with an existing connection, such as an FTP data transfer,
-.\" or an ICMP error.
-.\" .SS unclean
-.\" This module takes no options, but attempts to match packets which seem
-.\" malformed or unusual.  This is regarded as experimental.
-.\" .SS tos
-.\" This module matches the 8 bits of Type of Service field in the IP
-.\" header (ie. including the precedence bits). 
-.\" .TP
-.\" .BI "--tos " "tos"
-.\" The argument is either a standard name, (use
-.\" .br
-.\" iptables -m tos -h
-.\" .br
-.\" to see the list), or a numeric value to match.
 .SH TARGET EXTENSIONS
 ip6tables can use extended target modules: the following are included
 in the standard distribution.
+.\" @TARGET@
+.SS HL
+This is used to modify the IPv6 HOPLIMIT header field.  The HOPLIMIT field is 
+similar to what is known as TTL value in IPv4.  Setting or incrementing the
+HOPLIMIT field can potentially be very dangerous, so it should be avoided at
+any cost.  
+.TP
+.B Don't ever set or increment the value on packets that leave your local network!
+.B mangle
+table.
+.TP
+.BI "--hl-set " "value"
+Set the HOPLIMIT value to `value'.
+.TP
+.BI "--hl-dec " "value"
+Decrement the HOPLIMIT value `value' times.
+.TP
+.BI "--hl-inc " "value"
+Increment the HOPLIMIT value `value' times.
 .SS LOG
 Turn on kernel logging of matching packets.  When this option is set
 for a rule, the Linux kernel will print some information on all
@@ -587,6 +746,9 @@ Log options from the TCP packet header.
 .TP
 .B --log-ip-options
 Log options from the IPv6 packet header.
+.TP
+.B --log-uid
+Log the userid of the process which generated the packet.
 .SS MARK
 This is used to set the netfilter mark value associated with the
 packet.  It is only valid in the
@@ -628,115 +790,27 @@ TCP RST packet to be sent back.  This is mainly useful for blocking
 .I ident
 (113/tcp) probes which frequently occur when sending mail to broken mail
 hosts (which won't accept your mail otherwise).
-.\" .SS TOS
-.\" This is used to set the 8-bit Type of Service field in the IP header.
-.\" It is only valid in the
-.\" .B mangle
-.\" table.
-.\" .TP
-.\" .BI "--set-tos " "tos"
-.\" You can use a numeric TOS values, or use
-.\" .br
-.\" iptables -j TOS -h
-.\" .br
-.\" to see the list of valid TOS names.
-.\" .SS MIRROR
-.\" This is an experimental demonstration target which inverts the source
-.\" and destination fields in the IP header and retransmits the packet.
-.\" It is only valid in the
-.\" .BR INPUT ,
-.\" .B FORWARD
-.\" and 
-.\" .B PREROUTING
-.\" chains, and user-defined chains which are only called from those
-.\" chains.  Note that the outgoing packets are
-.\" .B NOT
-.\" seen by any packet filtering chains, connection tracking or NAT, to
-.\" avoid loops and other problems.
-.\" .SS SNAT
-.\" This target is only valid in the 
-.\" .B nat
-.\" table, in the 
-.\" .B POSTROUTING
-.\" chain.  It specifies that the source address of the packet should be
-.\" modified (and all future packets in this connection will also be
-.\" mangled), and rules should cease being examined.  It takes one option:
-.\" .TP
-.\" .BR "--to-source  " "\fIipaddr\fP[-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
-.\" which can specify a single new source IP address, an inclusive range
-.\" of IP addresses, and optionally, a port range (which is only valid if
-.\" the rule also specifies
-.\" .B "-p tcp"
-.\" or
-.\" .BR "-p udp" ).
-.\" If no port range is specified, then source ports below 512 will be
-.\" mapped to other ports below 512: those between 512 and 1023 inclusive
-.\" will be mapped to ports below 1024, and other ports will be mapped to
-.\" 1024 or above. Where possible, no port alteration will occur.
-.\" .SS DNAT
-.\" This target is only valid in the 
-.\" .B nat
-.\" table, in the 
-.\" .B PREROUTING
-.\" and
-.\" .B OUTPUT
-.\" chains, and user-defined chains which are only called from those
-.\" chains.  It specifies that the destination address of the packet
-.\" should be modified (and all future packets in this connection will
-.\" also be mangled), and rules should cease being examined.  It takes one
-.\" option:
-.\" .TP
-.\" .BR "--to-destination " "\fIipaddr\fP[-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
-.\" which can specify a single new destination IP address, an inclusive
-.\" range of IP addresses, and optionally, a port range (which is only
-.\" valid if the rule also specifies
-.\" .B "-p tcp"
-.\" or
-.\" .BR "-p udp" ).
-.\" If no port range is specified, then the destination port will never be
-.\" modified.
-.\" .SS MASQUERADE
-.\" This target is only valid in the 
-.\" .B nat
-.\" table, in the 
-.\" .B POSTROUTING
-.\" chain.  It should only be used with dynamically assigned IP (dialup)
-.\" connections: if you have a static IP address, you should use the SNAT
-.\" target.  Masquerading is equivalent to specifying a mapping to the IP
-.\" address of the interface the packet is going out, but also has the
-.\" effect that connections are 
-.\" .I forgotten
-.\" when the interface goes down.  This is the correct behavior when the
-.\" next dialup is unlikely to have the same interface address (and hence
-.\" any established connections are lost anyway).  It takes one option:
-.\" .TP
-.\" .BR "--to-ports " "\fIport\fP[-\fIport\fP]"
-.\" This specifies a range of source ports to use, overriding the default 
-.\" .B SNAT
-.\" source port-selection heuristics (see above).  This is only valid
-.\" if the rule also specifies
-.\" .B "-p tcp"
-.\" or
-.\" .BR "-p udp" .
-.\" .SS REDIRECT
-.\" This target is only valid in the 
-.\" .B nat
-.\" table, in the 
-.\" .B PREROUTING
-.\" and
-.\" .B OUTPUT
-.\" chains, and user-defined chains which are only called from those
-.\" chains.  It alters the destination IP address to send the packet to
-.\" the machine itself (locally-generated packets are mapped to the
-.\" 127.0.0.1 address).  It takes one option:
-.\" .TP
-.\" .BR "--to-ports " "\fIport\fP[-\fIport\fP]"
-.\" This specifies a destination port or range of ports to use: without
-.\" this, the destination port is never altered.  This is only valid
-.\" if the rule also specifies
-.\" .B "-p tcp"
-.\" or
-.\" .BR "-p udp" .
+
+.SS ROUTE
+This is used to explicitly override the core network stack's routing decision.
+.B mangle
+table.
+.TP
+.BI "--oif " "ifname"
+Route the packet through `ifname' network interface
+.TP
+.BI "--gw " "IPv6_address"
+Route the packet via this gateway
+.TP
+.BI "--continue "
+Behave like a non-terminating target and continue traversing the rules. Not valid in combination with `--tee'
+.TP
+.BI "--tee "
+Make a copy of the packet, and route that copy to the given destination. For the original, uncopied packet, behave like a non-terminating target and continue traversing the rules.  Not valid in combination with `--continue'
+.SS TRACE
+This target has no options.  It just turns on 
+.B packet tracing
+for all packets that match this rule.
 .SH DIAGNOSTICS
 Various error messages are printed to standard error.  The exit code
 is 0 for correct functioning.  Errors which appear to be caused by
