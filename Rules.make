@@ -11,9 +11,9 @@ clean: $(EXTRA_CLEANS)
 	@find . -name '*.[ao]' -o -name '*.so' | xargs rm -f
 
 install: all $(EXTRA_INSTALLS)
-	@if [ -f /usr/bin/iptables -a "$(BINDIR)" = "/usr/sbin" ];\
-	then echo 'Erasing iptables from old location (now /usr/sbin).';\
-	rm -f /usr/bin/iptables;\
+	@if [ -f /usr/local/bin/iptables -a "$(BINDIR)" = "/usr/local/sbin" ];\
+	then echo 'Erasing iptables from old location (now /usr/local/sbin).';\
+	rm -f /usr/local/bin/iptables;\
 	fi
 
 install-experimental: $(EXTRA_INSTALLS_EXP)
@@ -31,7 +31,7 @@ $(SHARED_LIBS:%.so=%.d): %.d: %.c
 	    sed -e 's@^.*\.o:@$*.d $*_sh.o:@' > $@
 
 $(SHARED_LIBS): %.so : %_sh.o
-	$(LD) -shared -o $@ $<
+	$(LD) -shared $(EXT_LDFLAGS) -o $@ $<
 
 %_sh.o : %.c
 	$(CC) $(SH_CFLAGS) -o $@ -c $<

@@ -4,12 +4,42 @@
 #include "iptables_common.h"
 #include "libiptc/libiptc.h"
 
+#ifndef IPT_LIB_DIR
+#define IPT_LIB_DIR "/usr/local/lib/iptables"
+#endif
+
+#ifndef IPPROTO_SCTP
+#define IPPROTO_SCTP 132
+#endif
+
+#ifndef IPT_SO_GET_REVISION_MATCH /* Old kernel source. */
+#define IPT_SO_GET_REVISION_MATCH	(IPT_BASE_CTL + 2)
+#define IPT_SO_GET_REVISION_TARGET	(IPT_BASE_CTL + 3)
+
+struct ipt_get_revision
+{
+	char name[IPT_FUNCTION_MAXNAMELEN-1];
+
+	u_int8_t revision;
+};
+#endif /* IPT_SO_GET_REVISION_MATCH   Old kernel source */
+
+struct iptables_rule_match
+{
+	struct iptables_rule_match *next;
+
+	struct iptables_match *match;
+};
+
 /* Include file for additions: new matches and targets. */
 struct iptables_match
 {
 	struct iptables_match *next;
 
 	ipt_chainlabel name;
+
+	/* Revision of match (0 by default). */
+	u_int8_t revision;
 
 	const char *version;
 
@@ -50,7 +80,6 @@ struct iptables_match
 	unsigned int option_offset;
 	struct ipt_entry_match *m;
 	unsigned int mflags;
-	unsigned int used;
 #ifdef NO_SHARED_LIBS
 	unsigned int loaded; /* simulate loading so options are merged properly */
 #endif
@@ -61,6 +90,9 @@ struct iptables_target
 	struct iptables_target *next;
 
 	ipt_chainlabel name;
+
+	/* Revision of target (0 by default). */
+	u_int8_t revision;
 
 	const char *version;
 
@@ -120,6 +152,7 @@ extern char *mask_to_dotted(const struct in_addr *mask);
 extern void parse_hostnetworkmask(const char *name, struct in_addr **addrpp,
                       struct in_addr *maskp, unsigned int *naddrs);
 extern u_int16_t parse_protocol(const char *s);
+extern void parse_interface(const char *arg, char *vianame, unsigned char *mask);
 
 extern int do_command(int argc, char *argv[], char **table,
 		      iptc_handle_t *handle);
@@ -134,7 +167,7 @@ enum ipt_tryload {
 };
 
 extern struct iptables_target *find_target(const char *name, enum ipt_tryload);
-extern struct iptables_match *find_match(const char *name, enum ipt_tryload);
+extern struct iptables_match *find_match(const char *name, enum ipt_tryload, struct iptables_rule_match **match);
 
 extern int delete_chain(const ipt_chainlabel chain, int verbose,
 			iptc_handle_t *handle);

@@ -47,14 +47,6 @@ static struct option opts[] = {
 	{0}
 };
 
-/* Initialize the match. */
-static void
-init(struct ip6t_entry_match *m, unsigned int *nfcache)
-{
-	/* Can't cache this. */
-	*nfcache |= NFC_UNKNOWN;
-}
-
 /* Function which parses command options; returns true if it
    ate an option */
 static int
@@ -129,6 +121,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 			exit_error(PARAMETER_PROBLEM, "OWNER CMD `%s' too long, max %d characters", optarg, sizeof(ownerinfo->comm));
 		
 		strncpy(ownerinfo->comm, optarg, sizeof(ownerinfo->comm));
+		ownerinfo->comm[sizeof(ownerinfo->comm)-1] = '\0';
 
 		if (invert)
 			ownerinfo->invert |= IP6T_OWNER_COMM;
@@ -148,10 +141,10 @@ print_item(struct ip6t_owner_info *info, u_int8_t flag, int numeric, char *label
 {
 	if(info->match & flag) {
 
-		printf(label);
-
 		if (info->invert & flag)
 			printf("! ");
+
+		printf(label);
 
 		switch(info->match & flag) {
 		case IP6T_OWNER_UID:
@@ -236,20 +229,17 @@ save(const struct ip6t_ip6 *ip, const struct ip6t_entry_match *match)
 #endif
 }
 
-static
-struct ip6tables_match owner
-= { NULL,
-    "owner",
-    IPTABLES_VERSION,
-    IP6T_ALIGN(sizeof(struct ip6t_owner_info)),
-    IP6T_ALIGN(sizeof(struct ip6t_owner_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct ip6tables_match owner = {
+	.name 		= "owner",
+	.version	= IPTABLES_VERSION,
+	.size		= IP6T_ALIGN(sizeof(struct ip6t_owner_info)),
+	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_owner_info)),
+	.help		= &help,
+	.parse		= &parse,
+	.final_check	= &final_check,
+	.print		= &print,
+	.save		= &save,
+	.extra_opts	= opts,
 };
 
 void _init(void)
