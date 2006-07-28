@@ -1,4 +1,4 @@
-/* Library which manipulates firewall rules.  Version $Revision: 3756 $ */
+/* Library which manipulates firewall rules.  Version $Revision: 4511 $ */
 
 /* Architecture of firewall rules is as follows:
  *
@@ -399,7 +399,7 @@ static inline void iptc_insert_chain(TC_HANDLE_T h, struct chain_head *c)
 	/* sort only user defined chains */
 	if (!c->hooknum) {
 		list_for_each_entry(tmp, &h->chains, list) {
-			if (strcmp(c->name, tmp->name) <= 0) {
+			if (!tmp->hooknum && strcmp(c->name, tmp->name) <= 0) {
 				list_add(&c->list, tmp->list.prev);
 				return;
 			}
@@ -674,7 +674,7 @@ static int iptcc_compile_chain(TC_HANDLE_T h, STRUCT_REPLACE *repl, struct chain
 
 /* calculate offset and number for every rule in the cache */
 static int iptcc_compile_chain_offsets(TC_HANDLE_T h, struct chain_head *c,
-				       int *offset, int *num)
+				       unsigned int *offset, unsigned int *num)
 {
 	struct rule_head *r;
 
@@ -798,7 +798,7 @@ TC_INIT(const char *tablename)
 {
 	TC_HANDLE_T h;
 	STRUCT_GETINFO info;
-	int tmp;
+	unsigned int tmp;
 	socklen_t s;
 
 	iptc_fn = TC_INIT;
@@ -2034,13 +2034,13 @@ TC_COMMIT(TC_HANDLE_T *handle)
 	new_number = iptcc_compile_table_prep(*handle, &new_size);
 	if (new_number < 0) {
 		errno = ENOMEM;
-		return 0;
+		goto out_zero;
 	}
 
 	repl = malloc(sizeof(*repl) + new_size);
 	if (!repl) {
 		errno = ENOMEM;
-		return 0;
+		goto out_zero;
 	}
 	memset(repl, 0, sizeof(*repl) + new_size);
 
@@ -2055,17 +2055,14 @@ TC_COMMIT(TC_HANDLE_T *handle)
 	repl->counters = malloc(sizeof(STRUCT_COUNTERS)
 				* (*handle)->info.num_entries);
 	if (!repl->counters) {
-		free(repl);
 		errno = ENOMEM;
-		return 0;
+		goto out_free_repl;
 	}
 	/* These are the counters we're going to put back, later. */
 	newcounters = malloc(counterlen);
 	if (!newcounters) {
-		free(repl->counters);
-		free(repl);
 		errno = ENOMEM;
-		return 0;
+		goto out_free_repl_counters;
 	}
 	memset(newcounters, 0, counterlen);
 
@@ -2082,9 +2079,7 @@ TC_COMMIT(TC_HANDLE_T *handle)
 	ret = iptcc_compile_table(*handle, repl);
 	if (ret < 0) {
 		errno = ret;
-		free(repl->counters);
-		free(repl);
-		return 0;
+		goto out_free_newcounters;
 	}
 
 
@@ -2099,12 +2094,11 @@ TC_COMMIT(TC_HANDLE_T *handle)
 	}
 #endif
 
-	if (setsockopt(sockfd, TC_IPPROTO, SO_SET_REPLACE, repl,
-		       sizeof(*repl) + repl->size) < 0) {
-		free(repl->counters);
-		free(repl);
-		free(newcounters);
-		return 0;
+	ret = setsockopt(sockfd, TC_IPPROTO, SO_SET_REPLACE, repl,
+			 sizeof(*repl) + repl->size);
+	if (ret < 0) {
+		errno = ret;
+		goto out_free_newcounters;
 	}
 
 	/* Put counters back. */
@@ -2194,21 +2188,29 @@ TC_COMMIT(TC_HANDLE_T *handle)
 	}
 #endif
 
-	if (setsockopt(sockfd, TC_IPPROTO, SO_SET_ADD_COUNTERS,
-		       newcounters, counterlen) < 0) {
-		free(repl->counters);
-		free(repl);
-		free(newcounters);
-		return 0;
+	ret = setsockopt(sockfd, TC_IPPROTO, SO_SET_ADD_COUNTERS,
+			 newcounters, counterlen);
+	if (ret < 0) {
+		errno = ret;
+		goto out_free_newcounters;
 	}
 
 	free(repl->counters);
 	free(repl);
 	free(newcounters);
 
- finished:
+finished:
 	TC_FREE(handle);
 	return 1;
+
+out_free_newcounters:
+	free(newcounters);
+out_free_repl_counters:
+	free(repl->counters);
+out_free_repl:
+	free(repl);
+out_zero:
+	return 0;
 }
 
 /* Get raw socket. */
