@@ -430,7 +430,8 @@ cmd2char(int option)
 }
 
 static void
-add_command(int *cmd, const int newcmd, const int othercmds, int invert)
+add_command(unsigned int *cmd, const int newcmd, const int othercmds,
+	    int invert)
 {
 	if (invert)
 		exit_error(PARAMETER_PROBLEM, "unexpected ! flag");
@@ -733,7 +734,7 @@ find_match(const char *name, enum ip6t_tryload tryload, struct ip6tables_rule_ma
   	}
 
 #ifndef NO_SHARED_LIBS
-	if (!ptr && tryload != DONT_LOAD) {
+	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
 		char path[strlen(lib_dir) + sizeof("/libip6t_.so")
 			 + strlen(name)];
 		if (!icmphack)
@@ -985,7 +986,7 @@ find_target(const char *name, enum ip6t_tryload tryload)
 	}
 
 #ifndef NO_SHARED_LIBS
-	if (!ptr && tryload != DONT_LOAD) {
+	if (!ptr && tryload != DONT_LOAD && tryload != DURING_LOAD) {
 		char path[strlen(lib_dir) + sizeof("/libip6t_.so")
 			 + strlen(name)];
 		sprintf(path, "%s/libip6t_%s.so", lib_dir, name);
@@ -1028,9 +1029,6 @@ merge_options(struct option *oldopts, const struct option *newopts,
 	unsigned int num_old, num_new, i;
 	struct option *merge;
 
-	/* Release previous options merged if any */
-	free_opts(0);
-
 	for (num_old = 0; oldopts[num_old].name; num_old++);
 	for (num_new = 0; newopts[num_new].name; num_new++);
 
@@ -1039,6 +1037,7 @@ merge_options(struct option *oldopts, const struct option *newopts,
 
 	merge = malloc(sizeof(struct option) * (num_new + num_old + 1));
 	memcpy(merge, oldopts, num_old * sizeof(struct option));
+	free_opts(0); /* Release previous options merged if any */
 	for (i = 0; i < num_new; i++) {
 		merge[num_old + i] = newopts[i];
 		merge[num_old + i].val += *option_offset;
@@ -1059,7 +1058,7 @@ register_match6(struct ip6tables_match *me)
 		exit(1);
 	}
 
-	if (find_match(me->name, DONT_LOAD, NULL)) {
+	if (find_match(me->name, DURING_LOAD, NULL)) {
 		fprintf(stderr, "%s: match `%s' already registered.\n",
 			program_name, me->name);
 		exit(1);
@@ -1089,7 +1088,7 @@ register_target6(struct ip6tables_target *me)
 		exit(1);
 	}
 
-	if (find_target(me->name, DONT_LOAD)) {
+	if (find_target(me->name, DURING_LOAD)) {
 		fprintf(stderr, "%s: target `%s' already registered.\n",
 			program_name, me->name);
 		exit(1);

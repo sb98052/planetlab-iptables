@@ -48,7 +48,7 @@ static struct option opts[] = {
 };
 
 static void
-parse_tos(const unsigned char *s, struct ipt_tos_info *info)
+parse_tos(const char *s, struct ipt_tos_info *info)
 {
 	unsigned int i;
 	unsigned int tos;

@@ -143,7 +143,8 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 	int portok;
 
 	if (entry->ip.proto == IPPROTO_TCP
-	    || entry->ip.proto == IPPROTO_UDP)
+	    || entry->ip.proto == IPPROTO_UDP
+	    || entry->ip.proto == IPPROTO_ICMP)
 		portok = 1;
 	else
 		portok = 0;
@@ -154,6 +155,13 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 			exit_error(PARAMETER_PROBLEM,
 				   "Unexpected `!' after --to-source");
 
+		if (*flags) {
+			if (!kernel_version)
+				get_kernel_version();
+			if (kernel_version > LINUX_VERSION(2, 6, 10))
+				exit_error(PARAMETER_PROBLEM,
+					   "Multiple --to-source not supported");
+		}
 		*target = parse_to(optarg, portok, info);
 		*flags = 1;
 		return 1;
