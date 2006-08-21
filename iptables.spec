@@ -1,6 +1,6 @@
 %define name iptables
-%define version 1.3.2
-%define release 20050720.1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define version 1.3.5
+%define release 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>

@@ -414,8 +414,8 @@ print_addr(struct in_addr *addr, struct in_addr *mask, int inv, int numeric)
 {
 	char buf[BUFSIZ];
 
-        if (inv)
-               	fputc('!', stdout);
+        if (inv) 
+               	printf("! ");
 
 	if (mask->s_addr == 0L && !numeric)
 		printf("%s ", "anywhere");
@@ -440,6 +440,13 @@ matchinfo_print(const struct ipt_ip *ip, const struct ipt_entry_match *match, in
         	if (sinfo->invflags & IPT_CONNTRACK_STATE)
                 	printf("! ");
 		print_state(sinfo->statemask);
+	}
+
+	if(sinfo->flags & IPT_CONNTRACK_PROTO) {
+		printf("%sctproto ", optpfx);
+        	if (sinfo->invflags & IPT_CONNTRACK_PROTO)
+                	printf("! ");
+		printf("%u ", sinfo->tuple[IP_CT_DIR_ORIGINAL].dst.protonum);
 	}
 
 	if(sinfo->flags & IPT_CONNTRACK_ORIGSRC) {
