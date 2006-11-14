@@ -21,6 +21,9 @@
 #include <stdarg.h>
 #include <netdb.h>
 #include <dlfcn.h>
+#ifndef __always_inline
+#define __always_inline inline
+#endif
 #include <asm/bitops.h>
 
 #include "ipset.h"

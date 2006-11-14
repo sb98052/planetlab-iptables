@@ -25,6 +25,9 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#ifndef __always_inline
+#define __always_inline inline
+#endif
 #include <asm/bitops.h>
 #include <asm/types.h>
 
