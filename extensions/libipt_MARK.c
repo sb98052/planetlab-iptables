@@ -18,6 +18,7 @@ help(void)
 "  --set-mark value                   Set nfmark value\n"
 "  --and-mark value                   Binary AND the nfmark with value\n"
 "  --or-mark  value                   Binary OR  the nfmark with value\n"
+"  --copy-xid                         Set nfmark to be the connection xid (PlanetLab specific)\n"
 "\n",
 IPTABLES_VERSION);
 }
@@ -26,6 +27,7 @@ static struct option opts[] = {
 	{ "set-mark", 1, 0, '1' },
 	{ "and-mark", 1, 0, '2' },
 	{ "or-mark", 1, 0, '3' },
+	{ "copy-xid", 1, 0, '4' },
 	{ 0 }
 };
 
@@ -101,6 +103,9 @@ parse_v1(int c, char **argv, int invert, unsigned int *flags,
 		break;
 	case '3':
 	        markinfo->mode = IPT_MARK_OR;
+		break;
+	case '4':
+	        markinfo->mode = IPT_MARK_COPYXID;
 		break;
 	default:
 		return 0;

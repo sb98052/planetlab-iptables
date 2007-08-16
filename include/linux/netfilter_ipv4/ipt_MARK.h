@@ -12,7 +12,8 @@ struct ipt_mark_target_info {
 enum {
 	IPT_MARK_SET=0,
 	IPT_MARK_AND,
-	IPT_MARK_OR
+	IPT_MARK_OR,
+	IPT_MARK_COPYXID
 };
 
 struct ipt_mark_target_info_v1 {
