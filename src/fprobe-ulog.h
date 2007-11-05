@@ -16,6 +16,9 @@
 #define IP_OFFMASK 0x1fff
 #endif
 
+#define MAX_PATH_LEN 255
+#define MAX_DIGIT 5
+
 #define SCHED SCHED_FIFO
 #define EMIT_TIMEOUT 5
 #define UNPENDING_TIMEOUT 5
@@ -111,6 +114,7 @@ struct Flow_TL {
 
 struct peer {
 	int write_fd;
+	char *fname;
 	struct sockaddr_in addr;
 	struct sockaddr_in laddr;
 	int type;
