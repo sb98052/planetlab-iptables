@@ -26,6 +26,7 @@
 #define THREADS 5
 #define COPY_INTO 0
 #define MOVE_INTO 1
+#define NETFLOW_PDU_SIZE 1464 
 
 struct Time {
 	time_t sec;
@@ -50,7 +51,7 @@ struct Flow {
 	/* tcp/udp dst port or icmp type sub-code */
 	uint16_t dp;
 	/* ip ToS */
-	uint8_t tos;
+	uint16_t tos;
 	/* tcp flags */
 	uint8_t tcp_flags;
 	/* number of packets */

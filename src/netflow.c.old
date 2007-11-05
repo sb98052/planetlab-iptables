@@ -71,7 +71,7 @@ static uint16_t NetFlow5_Flow[] = {
 	NETFLOW_DST_AS,
 	NETFLOW_SRC_MASK,
 	NETFLOW_DST_MASK,
-	NETFLOW_PLANETLAB_XID /* Whoo hoo! */
+	NETFLOW_PAD16
 };
 
 static uint16_t NetFlow7_Header[] = {

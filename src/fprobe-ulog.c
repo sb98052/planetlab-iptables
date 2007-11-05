@@ -355,7 +355,9 @@ unsigned get_log_fd(char *fname, unsigned cur_fd) {
 	int ret_fd;
 	gettime(&now);
 	cur_uptime = getuptime(&now);
-	if ((cur_uptime - prev_uptime) > (1000 * epoch_length)) {
+
+	/* Epoch lenght in minutes */
+	if ((cur_uptime - prev_uptime) > (1000 * 60 * epoch_length)) {
 		char nextname[MAX_PATH_LEN];
 		int write_fd;
 		prev_uptime = cur_uptime;
@@ -370,7 +372,7 @@ unsigned get_log_fd(char *fname, unsigned cur_fd) {
 	}
 	else
 		ret_fd = cur_fd;
-	return(cur_fd);
+	return(ret_fd);
 }
 
 struct Flow *find(struct Flow *where, struct Flow *what, struct Flow ***prev)
@@ -627,7 +629,10 @@ void *fill(int fields, uint16_t *format, struct Flow *flow, void *p)
 				*((uint8_t *) p) = 0;
 				p += NETFLOW_PAD8_SIZE;
 				break;
-
+			case NETFLOW_PLANETLAB_XID:
+				*((uint16_t *) p) = flow->tos;
+				p += NETFLOW_PLANETLAB_XID_SIZE;
+				break;
 			case NETFLOW_PAD16:
 			/* Unsupported (uint16_t) */
 			case NETFLOW_SRC_AS:
@@ -719,7 +724,7 @@ void *emit_thread()
 			p = fill(netflow->HeaderFields, netflow->HeaderFormat, 0, &emit_packet);
 			size = netflow->HeaderSize + emit_count * netflow->FlowSize;
 			/* Netflow PDUs need to be padded to 1464 bytes - Sapan */
-			if (size < 1464) size = 1464;
+			if (size < NETFLOW_PDU_SIZE) size = NETFLOW_PDU_SIZE;
 			peer_rot_cur = 0;
 			for (i = 0; i < npeers; i++) {
 				if (peers[0].type == PEER_FILE) {
@@ -1184,6 +1189,8 @@ int main(int argc, char **argv)
 	}
 
 	if (parms[Uflag].count) ulog_gmask = atoi(parms[Uflag].arg);
+	if (parms[Tflag].count) log_epochs = atoi(parms[Tflag].arg);
+	if (parms[Eflag].count) epoch_length = atoi(parms[Eflag].arg);
 	if (parms[sflag].count) scan_interval = atoi(parms[sflag].arg);
 	if (parms[gflag].count) frag_lifetime = atoi(parms[gflag].arg);
 	if (parms[dflag].count) inactive_lifetime = atoi(parms[dflag].arg);
@@ -1363,9 +1370,8 @@ bad_collector:
 	}
 	else if (parms[fflag].count) {
 		// log into a file
-		char *fname;
 		if (!(peers = malloc(npeers * sizeof(struct peer)))) goto err_malloc;
-		if (!(fname = malloc(strnlen(parms[fflag].arg,MAX_PATH_LEN)))) goto err_malloc;
+		if (!(peers[0].fname = malloc(strnlen(parms[fflag].arg,MAX_PATH_LEN)))) goto err_malloc;
 		strncpy(peers[0].fname, parms[fflag].arg, MAX_PATH_LEN);
 		
 		peers[0].write_fd = -1;
