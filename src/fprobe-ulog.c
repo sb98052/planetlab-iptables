@@ -249,10 +249,10 @@ void usage()
 		"-u <user>\tUser to run as\n"
 		"-v <level>\tMaximum log level (0=EMERG, ..., 6=INFO, 7=DEBUG) [6]\n"
 		"-l <[dst][:id]>\tLog destination and log/pidfile idetifier [1]\n"
-		"-y <remote:port>\tAddress of the NetFlow collector\n",
+		"-y <remote:port>\tAddress of the NetFlow collector\n"
 		"-f <writable file>\tFile to write data into\n"
 		"-T <n>\tRotate log file every n epochs\n"
-		"-E <[1..60]>\tSize of an epoch in minutes\n"
+		"-E <[1..60]>\tSize of an epoch in minutes\n",
 		VERSION, BULK_QUANTITY_MAX, bulk_quantity, sched_min, sched_max);
 	exit(0);
 }
