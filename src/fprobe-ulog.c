@@ -475,7 +475,7 @@ int put_into(struct Flow *flow, int flag
 				?FIXME?
 				Several packets with FLOW_TL (attack)
 				*/
-				flown->sp = flow->sp;
+				 flown->sp = flow->sp;
 				flown->dp = flow->dp;
 			}
 			if (flow->flags & FLOW_LASTFRAG) {
