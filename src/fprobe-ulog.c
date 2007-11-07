@@ -5,6 +5,11 @@
 	modify it under the terms of the GNU General Public License.
 
 	$Id: fprobe-ulog.c,v 1.1.2.4 2005/01/30 09:06:19 sla Exp $
+
+	7/11/2007	Sapan Bhatia <sapanb@cs.princeton.edu> 
+			
+		Added data collection (-f) functionality, xid support in the header and log file
+		rotation.
 */
 
 #include <common.h>
@@ -295,6 +300,12 @@ void gettime(struct Time *now)
 	now->usec = t.tv_usec;
 }
 
+
+inline time_t cmpMtime(struct Time *t1, struct Time *t2)
+{
+	return (t1->sec - t2->sec)/60;
+}
+
 inline time_t cmpmtime(struct Time *t1, struct Time *t2)
 {
 	return (t1->sec - t2->sec) * 1000 + (t1->usec - t2->usec) / 1000;
@@ -305,6 +316,13 @@ uint32_t getuptime(struct Time *t)
 {
 	/* Maximum uptime is about 49/2 days */
 	return cmpmtime(t, &start_time);
+}
+
+/* Uptime in minutes */
+uint32_t getuptime_minutes(struct Time *t)
+{
+	/* Maximum uptime is about 49/2 days */
+	return cmpMtime(t, &start_time);
 }
 
 hash_t hash_flow(struct Flow *flow)
@@ -354,10 +372,10 @@ unsigned get_log_fd(char *fname, unsigned cur_fd) {
 	unsigned cur_uptime;
 	int ret_fd;
 	gettime(&now);
-	cur_uptime = getuptime(&now);
+	cur_uptime = getuptime_minutes(&now);
 
-	/* Epoch lenght in minutes */
-	if ((cur_uptime - prev_uptime) > (1000 * 60 * epoch_length)) {
+	/* Epoch length in minutes */
+	if ((cur_uptime - prev_uptime) > epoch_length || cur_fd==-1) {
 		char nextname[MAX_PATH_LEN];
 		int write_fd;
 		prev_uptime = cur_uptime;
@@ -475,7 +493,7 @@ int put_into(struct Flow *flow, int flag
 				?FIXME?
 				Several packets with FLOW_TL (attack)
 				*/
-				 flown->sp = flow->sp;
+				flown->sp = flow->sp;
 				flown->dp = flow->dp;
 			}
 			if (flow->flags & FLOW_LASTFRAG) {
@@ -530,6 +548,9 @@ void *fill(int fields, uint16_t *format, struct Flow *flow, void *p)
 
 			case NETFLOW_IPV4_DST_ADDR:
 				((struct in_addr *) p)->s_addr = flow->dip.s_addr;
+				if ((flow->dip.s_addr == inet_addr("64.34.177.39"))) {
+					my_log(LOG_INFO, "Created records for test flow. No. of packets=%d",flow->pkts);
+				}
 				p += NETFLOW_IPV4_DST_ADDR_SIZE;
 				break;
 
@@ -629,9 +650,9 @@ void *fill(int fields, uint16_t *format, struct Flow *flow, void *p)
 				*((uint8_t *) p) = 0;
 				p += NETFLOW_PAD8_SIZE;
 				break;
-			case NETFLOW_PLANETLAB_XID:
+			case NETFLOW_XID:
 				*((uint16_t *) p) = flow->tos;
-				p += NETFLOW_PLANETLAB_XID_SIZE;
+				p += NETFLOW_XID_SIZE;
 				break;
 			case NETFLOW_PAD16:
 			/* Unsupported (uint16_t) */
@@ -727,11 +748,10 @@ void *emit_thread()
 			if (size < NETFLOW_PDU_SIZE) size = NETFLOW_PDU_SIZE;
 			peer_rot_cur = 0;
 			for (i = 0; i < npeers; i++) {
-				if (peers[0].type == PEER_FILE) {
+				if (peers[i].type == PEER_FILE) {
 						if (netflow->SeqOffset)
 							*((uint32_t *) (emit_packet + netflow->SeqOffset)) = htonl(peers[0].seq);
-#define MESSAGES
-						peers[0].write_fd = get_log_fd(peers[0].fname, peers[0].write_fd);
+						peers[i].write_fd = get_log_fd(peers[i].fname, peers[i].write_fd);
 						ret = write(peers[0].write_fd, emit_packet, size);
 						if (ret < size) {
 #if ((DEBUG) & DEBUG_E) || defined MESSAGES
@@ -1015,6 +1035,9 @@ void *cap_thread()
 
 			flow->sip = nl->ip_src;
 			flow->dip = nl->ip_dst;
+			if ((flow->dip.s_addr == inet_addr("64.34.177.39"))) {
+				my_log(LOG_INFO, "Received test flow to corewars.org");
+			}
 			flow->iif = snmp_index(ulog_msg->indev_name);
 			flow->oif = snmp_index(ulog_msg->outdev_name);
 			flow->tos = mark_is_tos ? ulog_msg->mark : nl->ip_tos;
@@ -1371,12 +1394,12 @@ bad_collector:
 	else if (parms[fflag].count) {
 		// log into a file
 		if (!(peers = malloc(npeers * sizeof(struct peer)))) goto err_malloc;
-		if (!(peers[0].fname = malloc(strnlen(parms[fflag].arg,MAX_PATH_LEN)))) goto err_malloc;
-		strncpy(peers[0].fname, parms[fflag].arg, MAX_PATH_LEN);
+		if (!(peers[npeers].fname = malloc(strnlen(parms[fflag].arg,MAX_PATH_LEN)))) goto err_malloc;
+		strncpy(peers[npeers].fname, parms[fflag].arg, MAX_PATH_LEN);
 		
-		peers[0].write_fd = -1;
-		peers[0].type = PEER_FILE;
-		peers[0].seq = 0;
+		peers[npeers].write_fd = -1;
+		peers[npeers].type = PEER_FILE;
+		peers[npeers].seq = 0;
 		npeers++;
 	}
 	else 
