@@ -398,7 +398,7 @@ unsigned get_log_fd(char *fname, unsigned cur_fd) {
 		cur_epoch = (cur_epoch + 1) % log_epochs;
 		close(cur_fd);
 		snprintf(nextname,MAX_PATH_LEN,"%s.%d",fname,cur_epoch);
-		if ((write_fd = open(nextname, O_WRONLY|O_CREAT)) < 0) {
+		if ((write_fd = open(nextname, O_WRONLY|O_CREAT|O_TRUNC)) < 0) {
 			my_log(LOG_ERR, "open(): %s (%s)\n", nextname, strerror(errno));
 			exit(1);
 		}
@@ -769,7 +769,7 @@ void *emit_thread()
 						if (netflow->SeqOffset)
 							*((uint32_t *) (emit_packet + netflow->SeqOffset)) = htonl(peers[0].seq);
 						peers[i].write_fd = get_log_fd(peers[i].fname, peers[i].write_fd);
-						ret = write(peers[0].write_fd, emit_packet, size);
+						ret = write(peers[i].write_fd, emit_packet, size);
 						if (ret < size) {
 
 #if ((DEBUG) & DEBUG_E) || defined MESSAGES
@@ -784,7 +784,7 @@ void *emit_thread()
 								emit_count, i + 1, peers[i].seq);
 						}
 #endif
-						peers[0].seq += emit_count;
+						peers[i].seq += emit_count;
 
 						/* Rate limit */
 						if (emit_rate_bytes) {

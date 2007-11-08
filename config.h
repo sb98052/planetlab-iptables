@@ -50,7 +50,7 @@
 #define MEM_BITS 0
 
 /* Runtime messages */
-/* #undef MESSAGES */
+#define MESSAGES 
 
 /* OS type */
 #define OS_LINUX 
@@ -89,7 +89,7 @@
 #define STDC_HEADERS 1
 
 /* Uptime trick */
-#define UPTIME_TRICK 
+/* #undef UPTIME_TRICK */
 
 /* Uptime trick */
 /* #undef UPTIME_TRICK_CISCO */
