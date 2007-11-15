@@ -29,6 +29,10 @@
 /* sig*() */
 #include <signal.h>
 
+/* statfs() */
+
+#include <sys/statfs.h>
+
 #include <libipulog/libipulog.h>
 struct ipulog_handle {
 	int fd;
@@ -94,6 +98,7 @@ enum {
 	bflag,
 	cflag,
 	dflag,
+	Dflag,
 	eflag,
 	Eflag,
 	fflag,
@@ -150,8 +155,10 @@ extern struct NetFlow NetFlow1;
 extern struct NetFlow NetFlow5;
 extern struct NetFlow NetFlow7;
 
+#define START_VALUE -5
 #define mark_is_tos parms[Mflag].count
 static unsigned scan_interval = 5;
+static int min_free = 0;
 static int frag_lifetime = 30;
 static int inactive_lifetime = 60;
 static int active_lifetime = 300;
@@ -260,6 +267,7 @@ void usage()
 		"-T <n>\tRotate log file every n epochs\n"
 		"-W <n>\tSet current epoch to n. Useful when restarting fprobe\n"
 		"-E <[1..60]>\tSize of an epoch in minutes\n"
+		"-D <number of blocks>\tNumber of disk blocks to preserve as free space\n"
 		,
 		VERSION, BULK_QUANTITY_MAX, bulk_quantity, sched_min, sched_max);
 	exit(0);
@@ -374,9 +382,9 @@ void update_cur_epoch_file(int n) {
 	int fd, len;
 	char snum[7];
 	len=snprintf(snum,6,"%d",n);
-	fd = open("/tmp/fprobe_last_epoch",O_WRONLY|O_CREAT);
+	fd = open("/tmp/fprobe_last_epoch",O_WRONLY|O_CREAT|O_TRUNC);
 	if (fd == -1) {
-		my_log(LOG_ERR, "open() failed: /tmp/fprobe_last_epoch");
+		my_log(LOG_ERR, "open() failed: /tmp/fprobe_last_epoch.The next restart will resume logging from epoch id 0.");
 		return;
 	}
 	write(fd, snum, len);
@@ -386,12 +394,31 @@ void update_cur_epoch_file(int n) {
 unsigned get_log_fd(char *fname, unsigned cur_fd) {
 	struct Time now;
 	unsigned cur_uptime;
+	/* We check if the amount of space left on the disk < some threshold and start reusing logs, or bail out if that
+	 * doesn't solve the problem */
+
+	struct statfs statfs;
 	int ret_fd;
 	gettime(&now);
 	cur_uptime = getuptime_minutes(&now);
 
+	if (fstatfs(cur_fd, &statfs) && cur_fd!=START_VALUE) {
+		my_log(LOG_ERR, "PANIC! Can't stat disk to calculate free blocks");
+	}
+	else {
+		if (min_free && statfs.f_bfree < min_free) 
+			switch(cur_epoch) {
+				case 0: /* Uh oh. Our first file filled up all of the free space. Just bail out. */
+					my_log(LOG_ERR, "The first epoch filled up all the free space on disk. Bailing out.");
+					exit(1);
+				default:
+					my_log(LOG_INFO, "Disk almost full. I'm going to drop data. Max epochs = %d\n",cur_epoch);
+					cur_epoch = -1;
+			}
+	}
+
 	/* Epoch length in minutes */
-	if ((cur_uptime - prev_uptime) > epoch_length || cur_fd==-1) {
+	if ((cur_uptime - prev_uptime) > epoch_length || cur_fd<0 || cur_epoch==-1) {
 		char nextname[MAX_PATH_LEN];
 		int write_fd;
 		prev_uptime = cur_uptime;
@@ -1236,6 +1263,7 @@ int main(int argc, char **argv)
 	if (parms[sflag].count) scan_interval = atoi(parms[sflag].arg);
 	if (parms[gflag].count) frag_lifetime = atoi(parms[gflag].arg);
 	if (parms[dflag].count) inactive_lifetime = atoi(parms[dflag].arg);
+	if (parms[Dflag].count) min_free = atoi(parms[Dflag].arg);
 	if (parms[eflag].count) active_lifetime = atoi(parms[eflag].arg);
 	if (parms[nflag].count) {
 		switch (atoi(parms[nflag].arg)) {
@@ -1416,7 +1444,7 @@ bad_collector:
 		if (!(peers[npeers].fname = malloc(strnlen(parms[fflag].arg,MAX_PATH_LEN)))) goto err_malloc;
 		strncpy(peers[npeers].fname, parms[fflag].arg, MAX_PATH_LEN);
 		
-		peers[npeers].write_fd = -1;
+		peers[npeers].write_fd = START_VALUE;
 		peers[npeers].type = PEER_FILE;
 		peers[npeers].seq = 0;
 		npeers++;
@@ -1441,20 +1469,23 @@ bad_collector:
 
 	my_log_open(ident, verbosity, log_dest);
 	if (!(log_dest & 2)) {
-		switch (fork()) {
-			case -1:
-				fprintf(stderr, "fork(): %s", strerror(errno));
-				exit(1);
-
-			case 0:
-				setsid();
-				freopen("/dev/null", "r", stdin);
-				freopen("/dev/null", "w", stdout);
-				freopen("/dev/null", "w", stderr);
-				break;
-
-			default:
-				exit(0);
+		/* Crash-proofing - Sapan*/
+		while (1) {
+			int pid=fork();
+			if (pid==-1) {
+					fprintf(stderr, "fork(): %s", strerror(errno));
+					exit(1);
+			}
+			else if (pid==0) {
+					setsid();
+					freopen("/dev/null", "r", stdin);
+					freopen("/dev/null", "w", stdout);
+					freopen("/dev/null", "w", stderr);
+					break;
+			}
+			else {
+				while (wait3(NULL,0,NULL) < 1);
+			}
 		}
 	} else {
 		setvbuf(stdout, (char *)0, _IONBF, 0);
