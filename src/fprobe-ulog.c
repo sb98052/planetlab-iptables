@@ -378,6 +378,18 @@ inline void copy_flow(struct Flow *src, struct Flow *dst)
 	dst->flags = src->flags;
 }
 
+void get_cur_epoch() {
+	int fd, len;
+	fd = open("/tmp/fprobe_last_epoch",O_RDONLY);
+	if (fd != -1) {
+		char snum[7];
+		read(fd, snum, 7);
+		sscanf(snum,"%d",&cur_epoch);
+	}
+	return;
+}
+
+
 void update_cur_epoch_file(int n) {
 	int fd, len;
 	char snum[7];
@@ -1447,6 +1459,8 @@ bad_collector:
 		peers[npeers].write_fd = START_VALUE;
 		peers[npeers].type = PEER_FILE;
 		peers[npeers].seq = 0;
+
+		get_cur_epoch();
 		npeers++;
 	}
 	else 
