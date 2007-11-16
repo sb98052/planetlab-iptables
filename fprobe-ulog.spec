@@ -17,12 +17,12 @@ it as NetFlow flows towards the specified collector.
 %setup -q
 
 %build
-./configure --sbindir=%{_sbindir} --mandir=%{_mandir} $EXTRA_OPTIONS
+./configure --sbindir=%{_sbindir} --mandir=%{_mandir} --enable-uptime_trick=no $EXTRA_OPTIONS
 make
 
 %install
 rm -rf %{buildroot}
-make install-strip DESTDIR=%{buildroot}
+make install DESTDIR=%{buildroot}
 gzip --best %{buildroot}%{_mandir}/man8/fprobe-ulog.8
 
 %clean
