@@ -379,12 +379,17 @@ inline void copy_flow(struct Flow *src, struct Flow *dst)
 }
 
 void get_cur_epoch() {
-	int fd, len;
+	int fd;
 	fd = open("/tmp/fprobe_last_epoch",O_RDONLY);
 	if (fd != -1) {
 		char snum[7];
-		read(fd, snum, 7);
-		sscanf(snum,"%d",&cur_epoch);
+		ssize_t len;
+		len = read(fd, snum, sizeof(snum)-1);
+		if (len != -1) {
+			snum[len]='\0';
+			sscanf(snum,"%d",&cur_epoch);
+			close(fd);
+		}
 	}
 	return;
 }
