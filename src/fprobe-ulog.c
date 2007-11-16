@@ -126,6 +126,7 @@ static struct getopt_parms parms[] = {
 	{'b', MY_GETOPT_ARG_REQUIRED, 0, 0},
 	{'c', MY_GETOPT_ARG_REQUIRED, 0, 0},
 	{'d', MY_GETOPT_ARG_REQUIRED, 0, 0},
+	{'D', MY_GETOPT_ARG_REQUIRED, 0, 0},
 	{'e', MY_GETOPT_ARG_REQUIRED, 0, 0},
 	{'E', MY_GETOPT_ARG_REQUIRED, 0, 0},
 	{'f', MY_GETOPT_ARG_REQUIRED, 0, 0},
