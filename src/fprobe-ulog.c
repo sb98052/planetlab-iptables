@@ -389,6 +389,7 @@ void get_cur_epoch() {
 		if (len != -1) {
 			snum[len]='\0';
 			sscanf(snum,"%d",&cur_epoch);
+			cur_epoch++; /* Let's not stone the last epoch */
 			close(fd);
 		}
 	}
@@ -409,7 +410,7 @@ void update_cur_epoch_file(int n) {
 	close(fd);
 }
 
-unsigned get_log_fd(char *fname, unsigned cur_fd) {
+unsigned get_log_fd(char *fname, int cur_fd) {
 	struct Time now;
 	unsigned cur_uptime;
 	/* We check if the amount of space left on the disk < some threshold and start reusing logs, or bail out if that
@@ -420,11 +421,12 @@ unsigned get_log_fd(char *fname, unsigned cur_fd) {
 	gettime(&now);
 	cur_uptime = getuptime_minutes(&now);
 
+
 	if (fstatfs(cur_fd, &statfs) && cur_fd!=START_VALUE) {
 		my_log(LOG_ERR, "PANIC! Can't stat disk to calculate free blocks");
 	}
 	else {
-		if (min_free && statfs.f_bfree < min_free) 
+		if (min_free && (statfs.f_bfree < min_free)) 
 			switch(cur_epoch) {
 				case 0: /* Uh oh. Our first file filled up all of the free space. Just bail out. */
 					my_log(LOG_ERR, "The first epoch filled up all the free space on disk. Bailing out.");
@@ -436,12 +438,13 @@ unsigned get_log_fd(char *fname, unsigned cur_fd) {
 	}
 
 	/* Epoch length in minutes */
-	if ((cur_uptime - prev_uptime) > epoch_length || cur_fd<0 || cur_epoch==-1) {
+	if (((cur_uptime - prev_uptime) > epoch_length) || (cur_fd < 0) || (cur_epoch==-1)) {
 		char nextname[MAX_PATH_LEN];
 		int write_fd;
 		prev_uptime = cur_uptime;
 		cur_epoch = (cur_epoch + 1) % log_epochs;
-		close(cur_fd);
+		if (cur_fd>0)
+			close(cur_fd);
 		snprintf(nextname,MAX_PATH_LEN,"%s.%d",fname,cur_epoch);
 		if ((write_fd = open(nextname, O_WRONLY|O_CREAT|O_TRUNC)) < 0) {
 			my_log(LOG_ERR, "open(): %s (%s)\n", nextname, strerror(errno));
@@ -450,8 +453,9 @@ unsigned get_log_fd(char *fname, unsigned cur_fd) {
 		update_cur_epoch_file(cur_epoch);
 		ret_fd = write_fd;
 	}
-	else
+	else {
 		ret_fd = cur_fd;
+	}
 	return(ret_fd);
 }
 
