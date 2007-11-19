@@ -1,5 +1,5 @@
 %define name iptables
-%define version 1.3.5
+%define version 1.3.5.1
 %define release 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Vendor: PlanetLab
