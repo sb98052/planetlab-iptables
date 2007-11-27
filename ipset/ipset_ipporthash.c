@@ -25,10 +25,6 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#ifndef __always_inline
-#define __always_inline inline
-#endif
-#include <asm/bitops.h>
 #include <asm/types.h>
 
 #include <linux/netfilter_ipv4/ip_set_ipporthash.h>
@@ -185,7 +181,7 @@ void create_final(void *data, unsigned int flags)
 
 	if (mydata->to - mydata->from > MAX_RANGE)
 		exit_error(PARAMETER_PROBLEM,
-			   "Range to large. Max is %d IPs in range\n",
+			   "Range too large. Max is %d IPs in range\n",
 			   MAX_RANGE+1);
 }
 
@@ -210,7 +206,7 @@ ip_set_ip_t adt_parser(unsigned cmd, const char *optarg, void *data)
 
 	DP("ipporthash: %p %p", optarg, data);
 
-	ptr = strsep(&tmp, "%");
+	ptr = strsep(&tmp, ":%");
 	parse_ip(ptr, &mydata->ip);
 
 	if (tmp)
@@ -266,7 +262,7 @@ void printips(struct set *set, void *data, size_t len, unsigned options)
 		if (*ipptr) {
 			ip = (*ipptr>>16) + mysetdata->first_ip;
 			port = (uint16_t) *ipptr;
-			printf("%s%%%s\n", 
+			printf("%s:%s\n", 
 			       ip_tostring(ip, options),
 			       port_tostring(port, options));
 		}
@@ -302,7 +298,7 @@ void saveips(struct set *set, void *data, size_t len, unsigned options)
 		if (*ipptr) {
 			ip = (*ipptr>>16) + mysetdata->first_ip;
 			port = (uint16_t) *ipptr;
-			printf("-A %s %s%%%s\n", set->name, 
+			printf("-A %s %s:%s\n", set->name, 
 			       ip_tostring(ip, options),
 			       port_tostring(port, options));
 		}
@@ -320,7 +316,7 @@ static char * unpack_ipport_tostring(struct set *set, ip_set_ip_t bip, unsigned 
 	
 	ip = (bip>>16) + mysetdata->first_ip;
 	port = (uint16_t) bip;
-	sprintf(buffer, "%s%%%s", 
+	sprintf(buffer, "%s:%s", 
 		ip_tostring(ip, options), port_tostring(port, options));
 		
 	return buffer;
@@ -333,9 +329,9 @@ void usage(void)
 	     "   [--hashsize hashsize] [--probes probes ] [--resize resize]\n"
 	     "-N set ipporthash --network IP/mask\n"
 	     "   [--hashsize hashsize] [--probes probes ] [--resize resize]\n"
-	     "-A set IP%%port\n"
-	     "-D set IP%%port\n"
-	     "-T set IP%%port\n");
+	     "-A set IP:port\n"
+	     "-D set IP:port\n"
+	     "-T set IP:port\n");
 }
 
 static struct settype settype_ipporthash = {

@@ -40,7 +40,6 @@ static struct option opts[] = {
 static int
 parse(int c, char **argv, int invert, unsigned int *flags,
       const struct ipt_entry *entry,
-      unsigned int *nfcache,
       struct ipt_entry_match **match)
 {
 	struct ipt_ipv4options_info *info = (struct ipt_ipv4options_info *)(*match)->data;

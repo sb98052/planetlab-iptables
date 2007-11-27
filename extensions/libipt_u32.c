@@ -93,7 +93,6 @@ u_int32_t parse_number(char **s, int pos)
 static int
 parse(int c, char **argv, int invert, unsigned int *flags,
       const struct ipt_entry *entry,
-      unsigned int *nfcache,
       struct ipt_entry_match **match)
 {
 	struct ipt_u32 *data = (struct ipt_u32 *)(*match)->data;

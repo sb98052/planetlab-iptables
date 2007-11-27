@@ -1,3 +1,31 @@
+2.3.0
+ - jiffies rollover bug in iptree type fixed (reported by Lukasz Nierycho
+   and others)
+ - endiannes bug in iptree type fixed (spotted by Jan Engelhardt)
+ - iptreemap type added (submitted by Sven Wegener)  
+ - 2.6.22/23 compatibility fixes (Jeremy Jacque)
+ - typo fixes in ipset (Neville D)
+ - separator changed to ':' from '%' (old one still supported) in ipset
+
+2.2.9a
+ - use correct type (socklen_t) for getsockopt (H. Nakano)
+ - incorrect return codes fixed (Tomasz Lemiech, Alexey Bortnikov)
+ - kernel header dependency removed (asm/bitops.h)
+ - ipset now tries to load in the ip_set kernel module if the protocol
+   is not available
+
+2.2.9
+ - 'ipset -N' did not generate proper return code
+ - 'limit' module parameter added to the kernel modules of the
+   iphash, ipporthash, nethash and iptree type of sets so that
+   the maximal number of elements can now be limited
+ - zero valued entries (port 0 or IP address 0.0.0.0) were
+   detected as members of the hash/tree kind of sets
+   (reported by Andrew Kraslavsky)
+ - list and save operations used the external identifier
+   of the sets for the bindings instead of the internal one
+   (reported by Amin Azez)
+
 2.2.8
  - Nasty off-by-one bug fixed in iptree type of sets
    (bug reported by Pablo Sole)
