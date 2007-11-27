@@ -12,10 +12,10 @@
 TOPLEVEL_INCLUDED=YES
 
 ifndef KERNEL_DIR
-KERNEL_DIR=/usr/src/linux
+KERNEL_DIR="/lib/modules/$(shell uname -r)/build"
 endif
-IPTABLES_VERSION:=1.3.5
-OLD_IPTABLES_VERSION:=1.3.4
+IPTABLES_VERSION:=1.3.8
+OLD_IPTABLES_VERSION:=1.3.7
 
 PREFIX:=/usr/local
 LIBDIR:=$(PREFIX)/lib
@@ -31,6 +31,11 @@ ifeq ($(shell [ -f /usr/include/netinet/ip6.h ] && echo YES), YES)
 DO_IPV6:=1
 endif
 
+# Enable linking to libselinux via enviornment 'DO_SELINUX=1'
+ifndef DO_SELINUX
+DO_SELINUX=0
+endif
+
 COPT_FLAGS:=-O2
 CFLAGS:=$(COPT_FLAGS) -Wall -Wunused -I$(KERNEL_DIR)/include -Iinclude/ -DIPTABLES_VERSION=\"$(IPTABLES_VERSION)\" #-g -DDEBUG #-pg # -DIPTC_DEBUG
 
@@ -43,9 +48,9 @@ EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/iptables $(DESTDIR)$(MANDIR)/man8/iptables.8
 
 # No longer experimental.
 ifneq ($(DO_MULTI), 1)
-EXTRAS+=iptables-save iptables-restore
+EXTRAS+=iptables-save iptables-restore iptables-xml
 endif
-EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/iptables-save $(DESTDIR)$(BINDIR)/iptables-restore $(DESTDIR)$(MANDIR)/man8/iptables-restore.8 $(DESTDIR)$(MANDIR)/man8/iptables-save.8
+EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/iptables-save $(DESTDIR)$(BINDIR)/iptables-restore $(DESTDIR)$(BINDIR)/iptables-xml $(DESTDIR)$(MANDIR)/man8/iptables-restore.8 $(DESTDIR)$(MANDIR)/man8/iptables-save.8
 
 ifeq ($(DO_IPV6), 1)
 EXTRAS+=ip6tables ip6tables.o ip6tables.8
@@ -62,7 +67,7 @@ ifeq ($(shell uname -m),sparc64)
 		# The kernel is 64-bit, even though userspace is 32.
 		CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
 	else
-		EXT_LDFLAGS=-m elf64_sparc
+		EXT_LDFLAGS+=-Wl,-m,elf64_sparc
 	endif
 endif
 
@@ -74,7 +79,7 @@ endif
 # Generic test if arch wasn't found above
 ifneq ($(POINTERTEST),1)
 	# Try to determine if kernel is 64bit and we are compiling for 32bit
-	ifeq ($(shell [ -a $(KERNEL_DIR)/include/asm ] && echo YES), YES)
+	ifeq ($(shell [ -d $(KERNEL_DIR)/include/asm ] && echo YES), YES)
 		64bitkernel := $(shell echo -e "\#include <asm/types.h>\n\#if BITS_PER_LONG == 64\nkernel_is_64bits\n\#endif" | $(CC) $(CFLAGS) -D__KERNEL__ -E - | grep kernel_is_64bits)
 		ifdef 64bitkernel
 			32bituser := $(shell echo -e "\#include <stdio.h>\n\#if !defined(__arch64__) && !defined(_LP64)\nuserspace_is_32bit\n\#endif" | $(CC) $(CFLAGS) -E - | grep userspace_is_32bit)
@@ -93,17 +98,24 @@ endif
 
 ifndef NO_SHARED_LIBS
 DEPFILES = $(SHARED_LIBS:%.so=%.d)
+DEPFILES += $(SHARED_SE_LIBS:%.so=%.d)
 SH_CFLAGS:=$(CFLAGS) -fPIC
 STATIC_LIBS  =
 STATIC6_LIBS =
 LDFLAGS      = -rdynamic
-LDLIBS       = -ldl -lnsl
+LDLIBS       = -ldl
+ifeq ($(DO_SELINUX), 1)
+LDLIBS       += -lselinux
+endif
 else
 DEPFILES = $(EXT_OBJS:%.o=%.d)
 STATIC_LIBS  = extensions/libext.a
 STATIC6_LIBS = extensions/libext6.a
 LDFLAGS      = -static
-LDLIBS       =
+LDLIBS	     =
+ifeq ($(DO_SELINUX), 1)
+LDLIBS       += -lselinux
+endif
 endif
 
 .PHONY: default
@@ -117,7 +129,7 @@ iptables.o: iptables.c
 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" -c -o $@ $<
 
 ifeq ($(DO_MULTI), 1)
-iptables: iptables-multi.c iptables-save.c iptables-restore.c iptables-standalone.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
+iptables: iptables-multi.c iptables-save.c iptables-restore.c iptables-xml.c iptables-standalone.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
 	$(CC) $(CFLAGS) -DIPTABLES_MULTI -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
 else
 iptables: iptables-standalone.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
@@ -150,6 +162,19 @@ $(DESTDIR)$(BINDIR)/iptables-restore: iptables
 	ln -sf $< $@
 else
 $(DESTDIR)$(BINDIR)/iptables-restore: iptables-restore
+	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
+	cp $< $@
+endif
+
+iptables-xml: iptables-xml.c #iptables.o # $(STATIC_LIBS) libiptc/libiptc.a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+ifeq ($(DO_MULTI), 1)
+$(DESTDIR)$(BINDIR)/iptables-xml: iptables
+	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
+	ln -sf $< $@
+else
+$(DESTDIR)$(BINDIR)/iptables-xml: iptables-xml
 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
 	cp $< $@
 endif
@@ -224,7 +249,7 @@ distrib: check distclean delrelease $(RELEASE_DIR)/iptables-$(IPTABLES_VERSION).
 # -g -pg -DIPTC_DEBUG
 .PHONY: check
 check:
-	@if echo $(CFLAGS) | egrep -e '-g|-pg|IPTC_DEBUG' >/dev/null; then echo Remove debugging flags; exit 1; else exit 0; fi
+	@if echo $(CFLAGS) | egrep -e '(^|[[:space:]])(-g|-pg|-DIPTC_DEBUG)([[:space:]]|$)' >/dev/null; then echo Remove debugging flags; exit 1; else exit 0; fi
 
 .PHONY: nowhitespace
 nowhitespace:
