@@ -25,6 +25,7 @@ BuildPrereq: /usr/bin/perl
 Requires: kernel >= 2.4.20
 Requires(post,postun): chkconfig
 Prefix: %{_prefix}
+BuildRequires: kernel-devel
 
 %package ipv6
 Summary: IPv6 support for iptables.
@@ -70,26 +71,24 @@ find . -type f -exec perl -pi -e "s,/usr,%{prefix},g" {} \;
 %build
 TOPDIR=`pwd`
 OPT="$RPM_OPT_FLAGS -I$TOPDIR/include"
-# bootstrap to avoid BuildRequires of kernel-source
-for KERNEL_DIR in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build /usr ; do
-    if [ -f $KERNEL_DIR/include/linux/version.h ] ; then
-	break
-    fi
-done
-make COPT_FLAGS="$OPT" KERNEL_DIR=$KERNEL_DIR LIBDIR=/%{_lib}
-make COPT_FLAGS="$OPT" KERNEL_DIR=$KERNEL_DIR LIBDIR=/%{_lib} iptables-save iptables-restore
-make COPT_FLAGS="$OPT" KERNEL_DIR=$KERNEL_DIR LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
+
+%define KERNEL %(rpm -q kernel-devel | tail -n 1 | sed 's,kernel-devel-,,')
+count=$(rpm -q kernel-devel| wc -l)
+if [ $count -gt 1 ] ; then
+	echo "WARNING: choosing kernel-devel-%{KERNEL}"
+	echo "  but there are other kernel-devel packages installed: $(rpm -q kernel-devel)"
+fi
+	
+%define KERNEL_DIR "/usr/src/kernels/%{KERNEL}"
+
+make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib}
+make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} iptables-save iptables-restore
+make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
 
 %install
-# bootstrap to avoid BuildRequires of kernel-source
-for KERNEL_DIR in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build /usr ; do
-    if [ -f $KERNEL_DIR/include/linux/version.h ] ; then
-	break
-    fi
-done
-make install DESTDIR=%{buildroot} KERNEL_DIR=$KERNEL_DIR BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
+make install DESTDIR=%{buildroot} KERNEL_DIR=%{KERNEL_DIR} BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
 %if %{build_devel}
-make install-devel DESTDIR=%{buildroot} KERNEL_DIR=$KERNEL_DIR BINDIR=/sbin LIBDIR=%{_libdir} MANDIR=%{_mandir} INCDIR=%{_includedir}
+make install-devel DESTDIR=%{buildroot} KERNEL_DIR=%{KERNEL_DIR} BINDIR=/sbin LIBDIR=%{_libdir} MANDIR=%{_mandir} INCDIR=%{_includedir}
 %endif
 cp ip{6,}tables-{save,restore} $RPM_BUILD_ROOT/sbin
 cp iptables-*.8 $RPM_BUILD_ROOT%{_mandir}/man8
