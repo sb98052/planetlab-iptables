@@ -72,7 +72,7 @@ find . -type f -exec perl -pi -e "s,/usr,%{prefix},g" {} \;
 TOPDIR=`pwd`
 OPT="$RPM_OPT_FLAGS -I$TOPDIR/include"
 
-%define KERNEL %(rpm -q --qf '%%{VERSION}-%%{RELEASE}-%%{ARCH}\n' kernel-devel | tail -n 1 )
+%define KERNEL %(rpm -q --qf '%%{VERSION}-%%{RELEASE}-%%{ARCH}\\n' kernel-devel | tail -n 1 )
 count=$(rpm -q kernel-devel| wc -l)
 if [ $count -gt 1 ] ; then
 	echo "WARNING: choosing kernel-devel-%{KERNEL}"
