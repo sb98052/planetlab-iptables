@@ -5,6 +5,12 @@ IPSET_LIB_DIR:=$(LIBDIR)/ipset
 IPSET_CFLAGS:=# -g -DIPSET_DEBUG #-pg # -DIPTC_DEBUG
 SETTYPES:=ipmap portmap macipmap iphash nethash iptree iptreemap ipporthash
 
+# for building on fedora 8
+ifneq "$(shell ld --help | grep build-id)" ""
+#not needed# CFLAGS += -Wl,--build-id
+LD += --build-id
+endif
+
 ifneq ($(wildcard $(KERNEL_DIR)/include/linux/netfilter_ipv4/ip_set.h),)
 
 EXTRAS+=ipset/ipset
