@@ -1,17 +1,24 @@
+#
+# $Id: iproute.spec 7668 2008-01-08 11:49:43Z thierry $
+#
+%define url $URL: svn+ssh://thierry@svn.planet-lab.org/svn/iproute2/trunk/iproute.spec $
+
 %define name iptables
 %define version 1.3.8
-%define release 0%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define taglevel 0
+
+%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
-Distribution: PlanetLab 3.0
-URL: http://cvs.planet-lab.org/cvs/iptables
+Distribution: PlanetLab %{plrelease}
+URL: %(echo %{url} | cut -d ' ' -f 2)
 
 %define build_devel 1
 %define linux_header 0
 
-Name: %{name}
 Summary: Tools for managing Linux kernel packet filtering capabilities.
+Name: %{name}
 Version: %{version}
 Release: %{release}
 Source: http://www.netfilter.org/%{name}-%{version}.tar.bz2
