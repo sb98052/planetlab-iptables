@@ -24,6 +24,7 @@ Release: %{release}
 Source: http://www.netfilter.org/%{name}-%{version}.tar.bz2
 %define SOURCE1 iptables.init
 %define SOURCE2 iptables-config
+%define SOURCE3 planetlab-config
 Group: System Environment/Base
 #URL: http://www.netfilter.org/
 BuildRoot: %{_tmppath}/%{name}-buildroot
@@ -105,6 +106,7 @@ sed -e 's;iptables;ip6tables;g' -e 's;IPTABLES;IP6TABLES;g' < %{SOURCE1} > ip6ta
 install -c -m755 ip6tables.init $RPM_BUILD_ROOT/etc/rc.d/init.d/ip6tables
 mkdir -p $RPM_BUILD_ROOT/etc/sysconfig
 install -c -m755 %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/iptables-config
+install -c -m755 %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/iptables
 sed -e 's;iptables;ip6tables;g' -e 's;IPTABLES;IP6TABLES;g' < %{SOURCE2} > ip6tables-config
 install -c -m755 ip6tables-config $RPM_BUILD_ROOT/etc/sysconfig/ip6tables-config
 
