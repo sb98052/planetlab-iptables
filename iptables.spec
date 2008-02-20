@@ -134,6 +134,7 @@ fi
 %doc COPYING INSTALL INCOMPATIBILITIES
 %config %attr(0755,root,root) /etc/rc.d/init.d/iptables
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables-config
+%config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables
 /sbin/iptables*
 %{_mandir}/man8/iptables*
 %dir /%{_lib}/iptables
