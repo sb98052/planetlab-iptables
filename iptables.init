@@ -34,7 +34,7 @@ fi
     || NEW_MODUTILS=0
 
 # Default firewall configuration:
-IPTABLES_MODULES=""
+IPTABLES_MODULES="ip_conntrack"
 IPTABLES_MODULES_UNLOAD="yes"
 IPTABLES_SAVE_ON_STOP="no"
 IPTABLES_SAVE_ON_RESTART="no"
