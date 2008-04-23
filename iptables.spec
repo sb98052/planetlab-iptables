@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 0
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -162,6 +162,12 @@ fi
 %endif
 
 %changelog
+* Wed Apr 23 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - iptables-1.3.8-1
+- Commit for latest fixes in trunk for the iptables config.  This one in
+- particular loads ip_conntrack in order to have the new vnet support ping right
+- away.
+- 
+
 * Tue Mar 02 2004 Elliot Lee <sopwith@redhat.com>
 - rebuilt
 
