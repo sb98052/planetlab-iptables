@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -162,6 +162,9 @@ fi
 %endif
 
 %changelog
+* Wed Jul 09 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.3.8-2
+- Added tuntap support. Let's start it in the iptables initscripts for now.
+
 * Wed Apr 23 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - iptables-1.3.8-1
 - Commit for latest fixes in trunk for the iptables config.  This one in
 - particular loads ip_conntrack in order to have the new vnet support ping right
