@@ -185,6 +185,19 @@ start() {
         tapmask=255.0.0.0
     fi
 
+    # Load additional modules (helpers)
+    if [ -n "$IPTABLES_MODULES" ]; then
+	echo -n $"Loading additional $IPTABLES modules: "
+	ret=0
+	for mod in $IPTABLES_MODULES; do
+	    echo -n "$mod "
+	    modprobe $mod > /dev/null 2>&1
+	    let ret+=$?;
+	done
+	[ $ret -eq 0 ] && success || failure
+	echo
+    fi
+
     for tap in $taps ; do
         # Configuration for this tap (address/proxy)
         eval cfg=\$$tap
@@ -212,18 +225,6 @@ start() {
             ip rule add from $addr tab 1
     done
 
-    # Load additional modules (helpers)
-    if [ -n "$IPTABLES_MODULES" ]; then
-	echo -n $"Loading additional $IPTABLES modules: "
-	ret=0
-	for mod in $IPTABLES_MODULES; do
-	    echo -n "$mod "
-	    modprobe $mod > /dev/null 2>&1
-	    let ret+=$?;
-	done
-	[ $ret -eq 0 ] && success || failure
-	echo
-    fi
     
     touch $VAR_SUBSYS_IPTABLES
     return $ret
