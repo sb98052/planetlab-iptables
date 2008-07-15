@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 2
+%define taglevel 3
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -162,6 +162,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 15 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.3.8-3
+- * Load required kernel modules before configuring tun/tap devices
+
 * Wed Jul 09 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.3.8-2
 - Added tuntap support. Let's start it in the iptables initscripts for now.
 
