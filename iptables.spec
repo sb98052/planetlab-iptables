@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 3
+%define taglevel 4
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -162,6 +162,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 21 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.3.8-4
+- Load tun/tap
+
 * Tue Jul 15 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.3.8-3
 - * Load required kernel modules before configuring tun/tap devices
 
