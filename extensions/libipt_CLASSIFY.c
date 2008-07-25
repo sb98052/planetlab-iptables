@@ -17,12 +17,14 @@ help(void)
 	printf(
 "CLASSIFY target v%s options:\n"
 "  --set-class [MAJOR:MINOR]    Set skb->priority value\n"
+"  --add-mark                   Add value of skb->mark to skb->priority (PlanetLab specific)\n"
 "\n",
 IPTABLES_VERSION);
 }
 
 static struct option opts[] = {
 	{ "set-class", 1, 0, '1' },
+	{ "add-mark", 0, 0, '2' },
 	{ 0 }
 };
 
@@ -53,6 +55,8 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 	struct ipt_classify_target_info *clinfo
 		= (struct ipt_classify_target_info *)(*target)->data;
 
+	clinfo->add_mark = 0;
+
 	switch (c) {
 	case '1':
 		if (string_to_priority(optarg, &clinfo->priority))
@@ -62,6 +66,10 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 			exit_error(PARAMETER_PROBLEM,
 			           "CLASSIFY: Can't specify --set-class twice");
 		*flags = 1;
+		break;
+
+	case '2':
+	        clinfo->add_mark = 1;
 		break;
 
 	default:
@@ -95,6 +103,8 @@ print(const struct ipt_ip *ip,
 		(const struct ipt_classify_target_info *)target->data;
 	printf("CLASSIFY set ");
 	print_class(clinfo->priority, numeric);
+	if (clinfo->add_mark)
+	       printf ("add-mark ");
 }
 
 /* Saves the union ipt_targinfo in parsable form to stdout. */
@@ -106,6 +116,9 @@ save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
 
 	printf("--set-class %.4x:%.4x ",
 	       TC_H_MAJ(clinfo->priority)>>16, TC_H_MIN(clinfo->priority));
+
+	if (clinfo->add_mark)
+	       printf("--add-mark ");
 }
 
 static struct iptables_target classify = { 
