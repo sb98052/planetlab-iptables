@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 4
+%define taglevel 5
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -164,6 +164,12 @@ fi
 %endif
 
 %changelog
+* Fri Jul 25 2008 Andy Bavier <acb@cs.princeton.edu> - iptables-1.3.8-5
+- * --add-mark action in CLASSIFY target
+- * Remove chkconfig from .spec file
+- * Fix iptables-save/-restore bug for MARK with --copy-xid
+- * Fix default PlanetLab iptables config
+
 * Mon Jul 21 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.3.8-4
 - Load tun/tap
 
