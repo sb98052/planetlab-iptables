@@ -182,6 +182,9 @@ print_v1(const struct ipt_ip *ip,
 	case IPT_MARK_OR: 
 		printf("MARK or ");
 		break;
+	case IPT_MARK_COPYXID: 
+		printf("MARK copyxid ");
+		break;
 	}
 	print_mark(markinfo->mark);
 }
@@ -202,6 +205,9 @@ save_v1(const struct ipt_ip *ip, const struct ipt_entry_target *target)
 		break;
 	case IPT_MARK_OR: 
 		printf("--or-mark ");
+		break;
+	case IPT_MARK_COPYXID: 
+		printf("--copy-xid ");
 		break;
 	}
 	print_mark(markinfo->mark);
