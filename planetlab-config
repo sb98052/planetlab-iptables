@@ -18,7 +18,7 @@ COMMIT
 :POSTROUTING ACCEPT 
 -A INPUT -j MARK --copy-xid 0x0
 -A POSTROUTING -j MARK --copy-xid 0x0 
--A POSTROUTING -j CLASSIFY --set-class 0001:1000
+-A POSTROUTING -j CLASSIFY --set-class 0001:1000 --add-mark
 COMMIT
 
 
