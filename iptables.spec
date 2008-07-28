@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 5
+%define taglevel 6
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -164,6 +164,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 28 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - iptables-1.3.8-6
+- Syntax error in the spec file prevented this package from installing.  Fixed.
+
 * Fri Jul 25 2008 Andy Bavier <acb@cs.princeton.edu> - iptables-1.3.8-5
 - * --add-mark action in CLASSIFY target
 - * Remove chkconfig from .spec file
