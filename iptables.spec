@@ -115,7 +115,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add iptables
-/sbin/service restart iptables
+/sbin/service iptables restart
 
 %preun
 if [ "$1" = 0 ]; then
@@ -124,7 +124,7 @@ fi
 
 %post ipv6
 /sbin/chkconfig --add ip6tables
-/sbin/service restart ip6tables
+/sbin/service ip6tables restart
 
 %preun ipv6
 if [ "$1" = 0 ]; then
