@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 6
+%define taglevel 7
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -164,6 +164,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 04 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.3.8-7
+- Codemux/PF change
+
 * Mon Jul 28 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - iptables-1.3.8-6
 - Syntax error in the spec file prevented this package from installing.  Fixed.
 
