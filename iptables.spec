@@ -115,20 +115,24 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add iptables
-/sbin/service iptables restart
+if [ "$PL_BOOTCD" != "1" ] ; then
+    /sbin/service iptables restart
+fi
 
 %preun
 if [ "$1" = 0 ]; then
-	/sbin/chkconfig --del iptables
+    /sbin/chkconfig --del iptables
 fi
 
 %post ipv6
 /sbin/chkconfig --add ip6tables
-/sbin/service ip6tables restart
+if [ "$PL_BOOTCD" != "1" ] ; then
+    /sbin/service ip6tables restart
+fi
 
 %preun ipv6
 if [ "$1" = 0 ]; then
-	/sbin/chkconfig --del ip6tables
+    /sbin/chkconfig --del ip6tables
 fi
 
 %files
