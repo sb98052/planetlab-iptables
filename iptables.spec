@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 7
+%define taglevel 8
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -168,6 +168,9 @@ fi
 %endif
 
 %changelog
+* Sat Aug 30 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - iptables-1.3.8-8
+- use PL_BOOTCD to prevent the service from getting started at build-time
+
 * Mon Aug 04 2008 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.3.8-7
 - Codemux/PF change
 
