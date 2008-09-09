@@ -26,6 +26,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <asm/types.h>
+#include <limits.h>
 
 #include <linux/netfilter_ipv4/ip_set_nethash.h>
 #include <linux/netfilter_ipv4/ip_set_jhash.h>

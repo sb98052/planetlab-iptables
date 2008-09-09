@@ -21,6 +21,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <limits.h>
 
 #include <linux/netfilter_ipv4/ip_set_iptree.h>
 #include "ipset.h"
