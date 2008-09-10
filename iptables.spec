@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 8
+%define taglevel 9
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -168,6 +168,9 @@ fi
 %endif
 
 %changelog
+* Wed Sep 10 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - iptables-1.3.8-9
+- fixes for building on f9/gcc-4.3 - no functional change
+
 * Sat Aug 30 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - iptables-1.3.8-8
 - use PL_BOOTCD to prevent the service from getting started at build-time
 
