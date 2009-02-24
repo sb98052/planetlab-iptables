@@ -95,6 +95,7 @@ make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} iptables-save ip
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
 
 %install
+mkdir -p %{buildroot}/sbin
 make install DESTDIR=%{buildroot} KERNEL_DIR=%{KERNEL_DIR} BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
 cp ip{6,}tables-{save,restore} $RPM_BUILD_ROOT/sbin
 cp iptables-*.8 $RPM_BUILD_ROOT%{_mandir}/man8
