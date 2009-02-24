@@ -89,7 +89,7 @@ fi
 	
 %define KERNEL_DIR "/usr/src/kernels/%{KERNEL}"
 
-./configure --libexecdir=/lib --disable-devel
+./configure --disable-devel
 
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib}
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} iptables-save iptables-restore
@@ -143,7 +143,9 @@ fi
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables-config
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables
 /usr/local/sbin/iptables*
+/sbin/iptables*
 /usr/local/bin/iptables*
+/usr/local/libexec/xtables/*
 %{_mandir}/man8/iptables*
 %dir /%{_lib}/iptables
 /%{_lib}/iptables/libipt*
