@@ -147,12 +147,6 @@ fi
 /usr/local/bin/iptables*
 /usr/local/libexec/xtables/*
 %{_mandir}/man8/iptables*
-%dir /%{_lib}/iptables
-/%{_lib}/iptables/libipt*
-/usr/local/sbin/ipset*
-%{_mandir}/man8/ipset*
-%dir /%{_lib}/ipset
-/%{_lib}/ipset/libipset*
 
 %files ipv6
 %defattr(-,root,root,0755)
