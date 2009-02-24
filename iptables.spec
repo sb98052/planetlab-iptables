@@ -98,6 +98,7 @@ make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} ip6tables-save i
 mkdir -p %{buildroot}/sbin
 make install DESTDIR=%{buildroot} KERNEL_DIR=%{KERNEL_DIR} BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
 cp ip{6,}tables-{save,restore} $RPM_BUILD_ROOT/sbin
+mkdir -p $RPM_BUILD_ROOT%{_mandir}/man8
 cp iptables-*.8 $RPM_BUILD_ROOT%{_mandir}/man8
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -c -m755 %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/iptables
