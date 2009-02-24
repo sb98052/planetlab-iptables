@@ -89,7 +89,7 @@ fi
 	
 %define KERNEL_DIR "/usr/src/kernels/%{KERNEL}"
 
-./configure --disable-devel
+./configure --disable-devel --prefix=%{buildroot}/usr/local
 
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib}
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} iptables-save iptables-restore
