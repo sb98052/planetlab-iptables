@@ -89,7 +89,8 @@ fi
 	
 %define KERNEL_DIR "/usr/src/kernels/%{KERNEL}"
 
-./configure --prefix=/ --libexecdir=/lib
+./configure --libexecdir=/lib --disable-devel
+
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib}
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} iptables-save iptables-restore
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
@@ -141,11 +142,12 @@ fi
 %config %attr(0755,root,root) /etc/rc.d/init.d/iptables
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables-config
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables
-/sbin/iptables*
+/usr/local/sbin/iptables*
+/usr/local/bin/iptables*
 %{_mandir}/man8/iptables*
 %dir /%{_lib}/iptables
 /%{_lib}/iptables/libipt*
-/sbin/ipset*
+/usr/local/sbin/ipset*
 %{_mandir}/man8/ipset*
 %dir /%{_lib}/ipset
 /%{_lib}/ipset/libipset*
