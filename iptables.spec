@@ -30,7 +30,7 @@ Group: System Environment/Base
 BuildRoot: %{_tmppath}/%{name}-buildroot
 License: GPL
 BuildPrereq: /usr/bin/perl
-Requires: kernel >= 2.4.20
+Requires: kernel >= 2.6.27
 Requires(post,postun): chkconfig
 Prefix: %{_prefix}
 BuildRequires: kernel-devel
@@ -89,27 +89,36 @@ fi
 	
 %define KERNEL_DIR "/usr/src/kernels/%{KERNEL}"
 
-./configure --disable-devel --prefix=%{buildroot}/usr/local
+%if %{build_devel}
+%define configure_option --enable-devel
+%else
+%define configure_option
+%endif
+
+./configure --prefix=/usr %{configure_option} --enable-libipq --bindir=/bin --sbindir=/sbin --sysconfdir=/etc --libdir=/%{_libdir} --libexecdir=/%{_lib} --mandir=%{_mandir} --includedir=%{_includedir}
 
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib}
-make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} iptables-save iptables-restore
-make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
 
 %install
-mkdir -p %{buildroot}/sbin
-make install DESTDIR=%{buildroot} KERNEL_DIR=%{KERNEL_DIR} BINDIR=/sbin LIBDIR=/%{_lib} MANDIR=%{_mandir}
-cp ip{6,}tables-{save,restore} $RPM_BUILD_ROOT/sbin
-mkdir -p $RPM_BUILD_ROOT%{_mandir}/man8
-cp iptables-*.8 $RPM_BUILD_ROOT%{_mandir}/man8
-mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -c -m755 %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/iptables
+# Thierry : for 1.4.1.1
+# from http://fr2.rpmfind.net/linux/fedora/releases/10/Everything/source/SRPMS/iptables-1.4.1.1-2.fc10.src.rpm
+make install DESTDIR=%{buildroot} 
+
+# install iptc devel library
+%if %{build_devel}
+install -m 644 libiptc/libiptc.a %{buildroot}/%{_libdir}
+%endif
+
+# install init scripts and configuration files
+install -d -m 755 $RPM_BUILD_ROOT/etc/rc.d/init.d
+install -c -m 755 %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/iptables
 sed -e 's;iptables;ip6tables;g' -e 's;IPTABLES;IP6TABLES;g' < %{SOURCE1} > ip6tables.init
-install -c -m755 ip6tables.init $RPM_BUILD_ROOT/etc/rc.d/init.d/ip6tables
-mkdir -p $RPM_BUILD_ROOT/etc/sysconfig
-install -c -m755 %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/iptables-config
-install -c -m755 %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/iptables
+install -c -m 755 ip6tables.init $RPM_BUILD_ROOT/etc/rc.d/init.d/ip6tables
+install -d -m 755 $RPM_BUILD_ROOT/etc/sysconfig
+install -c -m 755 %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/iptables-config
 sed -e 's;iptables;ip6tables;g' -e 's;IPTABLES;IP6TABLES;g' < %{SOURCE2} > ip6tables-config
-install -c -m755 ip6tables-config $RPM_BUILD_ROOT/etc/sysconfig/ip6tables-config
+install -c -m 755 ip6tables-config $RPM_BUILD_ROOT/etc/sysconfig/ip6tables-config
+install -c -m755 %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/iptables
 
 %clean
 rm -rf $RPM_BUILD_ROOT 
@@ -142,26 +151,40 @@ fi
 %config %attr(0755,root,root) /etc/rc.d/init.d/iptables
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables-config
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables
-/usr/local/sbin/iptables*
 /sbin/iptables*
-/usr/local/bin/iptables*
-/usr/local/libexec/xtables/*
 %{_mandir}/man8/iptables*
+
+# Thierry - WARNING : location changed
+%dir /%{_lib}/xtables
+# WARNING : location changed
+/%{_lib}/xtables/libipt*
+# WARNING : new stuff
+/%{_lib}/xtables/libxt*
+# WARNING : not found at all
+#/sbin/ipset*
+#%{_mandir}/man8/ipset*
+#%dir /%{_lib}/ipset
+#/%{_lib}/ipset/libipset*
 
 %files ipv6
 %defattr(-,root,root,0755)
 %config %attr(0755,root,root) /etc/rc.d/init.d/ip6tables
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/ip6tables-config
 /sbin/ip6tables*
+# Thierry - WARNING : new stuff
+/bin/iptables-xml
 %{_mandir}/man8/ip6tables*
-/%{_lib}/iptables/libip6t*
+# WARNING : location changed
+/%{_lib}/xtables/libip6t*
 
 %if %{build_devel}
 %files devel
 %defattr(-,root,root,0755)
-%{_includedir}/libipq.h
+%{_includedir}/*.h
+%dir %{_includedir}/libiptc
+%{_includedir}/libiptc/*.h
 %{_libdir}/libipq.a
-#%{_libdir}/libiptc.a
+%{_libdir}/libiptc.a
 %{_mandir}/man3/*
 %endif
 
