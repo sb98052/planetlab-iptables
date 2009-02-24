@@ -89,6 +89,7 @@ fi
 	
 %define KERNEL_DIR "/usr/src/kernels/%{KERNEL}"
 
+./configure
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib}
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} iptables-save iptables-restore
 make COPT_FLAGS="$OPT" KERNEL_DIR=%{KERNEL_DIR} LIBDIR=/%{_lib} ip6tables-save ip6tables-restore
