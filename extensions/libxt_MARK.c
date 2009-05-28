@@ -39,6 +39,7 @@ static const struct option mark_tg_opts[] = {
 	{.name = "and-mark",  .has_arg = true, .val = '&'},
 	{.name = "or-mark",   .has_arg = true, .val = '|'},
 	{.name = "xor-mark",  .has_arg = true, .val = '^'},
+	{.name = "copy-xid",  .has_arg = true, .val = '%'},
 	{ .name = NULL }
 };
 
@@ -50,6 +51,7 @@ static void mark_tg_help(void)
 "  --set-mark value[/mask]   Clear bits in mask and OR value into nfmark\n"
 "  --and-mark bits           Binary AND the nfmark with bits\n"
 "  --or-mark bits            Binary OR the nfmark with bits\n"
+"  --copy-xid                Set nfmark to be the connection xid (PlanetLab specific)\n"
 "  --xor-mask bits           Binary XOR the nfmark with bits\n"
 "\n");
 }
@@ -184,6 +186,12 @@ static int mark_tg_parse(int c, char **argv, int invert, unsigned int *flags,
 		info->mask = 0;
 		break;
 
+    case '%': /* --copy-xid */
+        param_act(P_ONE_ACTION, "MARK", *flags & F_MARK);
+        info->mark = 0;
+        info->mask = mask;
+        break;
+
 	default:
 		return false;
 	}
@@ -196,7 +204,7 @@ static void mark_tg_check(unsigned int flags)
 {
 	if (flags == 0)
 		exit_error(PARAMETER_PROBLEM, "MARK: One of the --set-xmark, "
-		           "--{and,or,xor,set}-mark options is required");
+		           "--{and,or,xor,set}-mark, or --copy-xid options is required");
 }
 
 static void
