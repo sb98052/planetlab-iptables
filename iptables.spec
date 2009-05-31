@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.4.1.1
-%define taglevel 0
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -189,5 +189,7 @@ fi
 %endif
 
 %changelog
+* Sun May 31 2009 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.4.1.1-1
+
 * Sun Feb 22 2009 Sapan Bhatia <sapanb@cs.princeton.edu>
 - Checking in initial version of iptables 1.4.1.1
