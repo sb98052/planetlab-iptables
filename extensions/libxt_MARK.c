@@ -188,7 +188,7 @@ static int mark_tg_parse(int c, char **argv, int invert, unsigned int *flags,
 
     case '%': /* --copy-xid */
         param_act(P_ONE_ACTION, "MARK", *flags & F_MARK);
-        info->mark = 0;
+        info->mark = ~0U; /* Consistency check */
         info->mask = mask;
         break;
 
@@ -258,18 +258,20 @@ static void MARK_print_v1(const void *ip, const struct xt_entry_target *target,
 }
 
 static void mark_tg_print(const void *ip, const struct xt_entry_target *target,
-                          int numeric)
+        int numeric)
 {
-	const struct xt_mark_tginfo2 *info = (const void *)target->data;
+    const struct xt_mark_tginfo2 *info = (const void *)target->data;
 
-	if (info->mark == 0)
-		printf("MARK and 0x%x ", (unsigned int)(u_int32_t)~info->mask);
-	else if (info->mark == info->mask)
-		printf("MARK or 0x%x ", info->mark);
-	else if (info->mask == 0)
-		printf("MARK xor 0x%x ", info->mark);
-	else
-		printf("MARK xset 0x%x/0x%x ", info->mark, info->mask);
+    if (info->mark == ~0U) 
+        printf("MARK copy-xid");
+    else if (info->mark == 0)
+        printf("MARK and 0x%x ", (unsigned int)(u_int32_t)~info->mask);
+    else if (info->mark == info->mask)
+        printf("MARK or 0x%x ", info->mark);
+    else if (info->mask == 0)
+        printf("MARK xor 0x%x ", info->mark);
+    else
+        printf("MARK xset 0x%x/0x%x ", info->mark, info->mask);
 }
 
 /* Saves the union ipt_targinfo in parsable form to stdout. */
@@ -299,7 +301,10 @@ static void mark_tg_save(const void *ip, const struct xt_entry_target *target)
 {
 	const struct xt_mark_tginfo2 *info = (const void *)target->data;
 
-	printf("--set-xmark 0x%x/0x%x ", info->mark, info->mask);
+    if (info->mark==~0U)
+        printf("--copy-xid 0x0");
+    else
+	    printf("--set-xmark 0x%x/0x%x ", info->mark, info->mask);
 }
 
 static struct xtables_target mark_target_v0 = {
