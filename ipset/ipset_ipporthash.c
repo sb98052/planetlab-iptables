@@ -366,7 +366,7 @@ static struct settype settype_ipporthash = {
 	.usage = &usage,
 };
 
-void _init(void)
+void __attribute__ ((constructor)) my_init(void)
 {
 	settype_register(&settype_ipporthash);
 

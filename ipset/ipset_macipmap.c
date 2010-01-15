@@ -332,7 +332,7 @@ static struct settype settype_macipmap = {
 	.usage = &usage,
 };
 
-void _init(void)
+void __attribute__ ((constructor)) my_init(void)
 {
 	settype_register(&settype_macipmap);
 
