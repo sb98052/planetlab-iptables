@@ -1,0 +1,197 @@
+commit 12aa2a62d05523e66b104b3f6840c592309d3a05
+Author: S.Çağlar Onur <caglar@cs.princeton.edu>
+Date:   Sat Apr 3 01:17:41 2010 -0400
+
+    copy-xid
+
+diff --git a/extensions/libxt_CLASSIFY.c b/extensions/libxt_CLASSIFY.c
+index 82b8f4e..09c15c0 100644
+--- a/extensions/libxt_CLASSIFY.c
++++ b/extensions/libxt_CLASSIFY.c
+@@ -15,11 +15,13 @@ CLASSIFY_help(void)
+ {
+ 	printf(
+ "CLASSIFY target options:\n"
+-"--set-class MAJOR:MINOR    Set skb->priority value (always hexadecimal!)\n");
++"--set-class MAJOR:MINOR    Set skb->priority value (always hexadecimal!)\n"
++"  --add-mark                   Add value of skb->mark to skb->priority (PlanetLab specific)\n");
+ }
+ 
+ static const struct option CLASSIFY_opts[] = {
+ 	{ "set-class", 1, NULL, '1' },
++	{ "add-mark", 0, 0, '2' },
+ 	{ .name = NULL }
+ };
+ 
+@@ -42,6 +44,8 @@ CLASSIFY_parse(int c, char **argv, int invert, unsigned int *flags,
+ 	struct xt_classify_target_info *clinfo
+ 		= (struct xt_classify_target_info *)(*target)->data;
+ 
++	clinfo->add_mark = 0;
++
+ 	switch (c) {
+ 	case '1':
+ 		if (CLASSIFY_string_to_priority(optarg, &clinfo->priority))
+@@ -53,6 +57,10 @@ CLASSIFY_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		*flags = 1;
+ 		break;
+ 
++	case '2':
++		clinfo->add_mark = 1;
++		break;
++
+ 	default:
+ 		return 0;
+ 	}
+@@ -83,6 +91,9 @@ CLASSIFY_print(const void *ip,
+ 		(const struct xt_classify_target_info *)target->data;
+ 	printf("CLASSIFY set ");
+ 	CLASSIFY_print_class(clinfo->priority, numeric);
++
++	if (clinfo->add_mark)
++		printf ("add-mark ");
+ }
+ 
+ static void
+@@ -93,6 +104,9 @@ CLASSIFY_save(const void *ip, const struct xt_entry_target *target)
+ 
+ 	printf("--set-class %.4x:%.4x ",
+ 	       TC_H_MAJ(clinfo->priority)>>16, TC_H_MIN(clinfo->priority));
++
++	if (clinfo->add_mark)
++		printf("--add-mark ");
+ }
+ 
+ static struct xtables_target classify_target = { 
+diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
+index dbfc7c0..db58a1b 100644
+--- a/extensions/libxt_MARK.c
++++ b/extensions/libxt_MARK.c
+@@ -19,6 +19,7 @@ enum {
+ 	XT_MARK_SET=0,
+ 	XT_MARK_AND,
+ 	XT_MARK_OR,
++	IPT_MARK_COPYXID,
+ };
+ 
+ struct xt_mark_target_info_v1 {
+@@ -36,13 +37,15 @@ static void MARK_help(void)
+ "MARK target options:\n"
+ "  --set-mark value                   Set nfmark value\n"
+ "  --and-mark value                   Binary AND the nfmark with value\n"
+-"  --or-mark  value                   Binary OR  the nfmark with value\n");
++"  --or-mark  value                   Binary OR  the nfmark with value\n"
++"  --copy-xid                         Set nfmark to be the connection xid (PlanetLab specific)\n");
+ }
+ 
+ static const struct option MARK_opts[] = {
+ 	{ "set-mark", 1, NULL, '1' },
+ 	{ "and-mark", 1, NULL, '2' },
+ 	{ "or-mark", 1, NULL, '3' },
++	{ "copy-xid", 1, 0, '4' },
+ 	{ .name = NULL }
+ };
+ 
+@@ -52,6 +55,7 @@ static const struct option mark_tg_opts[] = {
+ 	{.name = "and-mark",  .has_arg = true, .val = '&'},
+ 	{.name = "or-mark",   .has_arg = true, .val = '|'},
+ 	{.name = "xor-mark",  .has_arg = true, .val = '^'},
++	{.name = "copy-xid",  .has_arg = true, .val = '%'},
+ 	{ .name = NULL }
+ };
+ 
+@@ -63,6 +67,7 @@ static void mark_tg_help(void)
+ "  --set-mark value[/mask]   Clear bits in mask and OR value into nfmark\n"
+ "  --and-mark bits           Binary AND the nfmark with bits\n"
+ "  --or-mark bits            Binary OR the nfmark with bits\n"
++"  --copy-xid                Set nfmark to be the connection xid (PlanetLab specific)\n"
+ "  --xor-mask bits           Binary XOR the nfmark with bits\n"
+ "\n");
+ }
+@@ -126,6 +131,9 @@ MARK_parse_v1(int c, char **argv, int invert, unsigned int *flags,
+ 	case '3':
+ 	        markinfo->mode = XT_MARK_OR;
+ 		break;
++	case '4':
++	        markinfo->mode = IPT_MARK_COPYXID;
++		break;
+ 	default:
+ 		return 0;
+ 	}
+@@ -194,6 +202,12 @@ static int mark_tg_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		info->mask = 0;
+ 		break;
+ 
++	case '%': /* --copy-xid */
++		xtables_param_act(XTF_ONE_ACTION, "MARK", *flags & F_MARK);
++		info->mark = ~0U; /* Consistency check */
++		info->mask = mask;
++		break;
++
+ 	default:
+ 		return false;
+ 	}
+@@ -206,7 +220,7 @@ static void mark_tg_check(unsigned int flags)
+ {
+ 	if (flags == 0)
+ 		xtables_error(PARAMETER_PROBLEM, "MARK: One of the --set-xmark, "
+-		           "--{and,or,xor,set}-mark options is required");
++		           "--{and,or,xor,set}-mark, or --copy-xid options is required");
+ }
+ 
+ static void
+@@ -249,6 +263,9 @@ static void MARK_print_v1(const void *ip, const struct xt_entry_target *target,
+ 	case XT_MARK_OR: 
+ 		printf("MARK or ");
+ 		break;
++	case IPT_MARK_COPYXID: 
++		printf("MARK copyxid ");
++		break;
+ 	}
+ 	print_mark(markinfo->mark);
+ }
+@@ -258,7 +275,9 @@ static void mark_tg_print(const void *ip, const struct xt_entry_target *target,
+ {
+ 	const struct xt_mark_tginfo2 *info = (const void *)target->data;
+ 
+-	if (info->mark == 0)
++	if (info->mark == ~0U)
++		printf("MARK copy-xid");
++	else if (info->mark == 0)
+ 		printf("MARK and 0x%x ", (unsigned int)(u_int32_t)~info->mask);
+ 	else if (info->mark == info->mask)
+ 		printf("MARK or 0x%x ", info->mark);
+@@ -285,6 +304,9 @@ static void MARK_save_v1(const void *ip, const struct xt_entry_target *target)
+ 	case XT_MARK_OR: 
+ 		printf("--or-mark ");
+ 		break;
++	case IPT_MARK_COPYXID:
++		printf("--copy-xid ");
++		break;
+ 	}
+ 	print_mark(markinfo->mark);
+ }
+@@ -293,7 +315,10 @@ static void mark_tg_save(const void *ip, const struct xt_entry_target *target)
+ {
+ 	const struct xt_mark_tginfo2 *info = (const void *)target->data;
+ 
+-	printf("--set-xmark 0x%x/0x%x ", info->mark, info->mask);
++	if (info->mark==~0U)
++		printf("--copy-xid 0x0");
++	else
++		printf("--set-xmark 0x%x/0x%x ", info->mark, info->mask);
+ }
+ 
+ static struct xtables_target mark_tg_reg[] = {
+diff --git a/include/linux/netfilter/xt_CLASSIFY.h b/include/linux/netfilter/xt_CLASSIFY.h
+index a813bf1..c5cec1d 100644
+--- a/include/linux/netfilter/xt_CLASSIFY.h
++++ b/include/linux/netfilter/xt_CLASSIFY.h
+@@ -5,6 +5,7 @@
+ 
+ struct xt_classify_target_info {
+ 	__u32 priority;
++	__u8 add_mark;
+ };
+ 
+ #endif /*_XT_CLASSIFY_H */
