@@ -96,6 +96,7 @@ sed -e 's;iptables;ip6tables;g' -e 's;IPTABLES;IP6TABLES;g' < %{SOURCE1} > ip6ta
 install -c -m 755 ip6tables.init %{buildroot}/etc/rc.d/init.d/ip6tables
 install -d -m 755 %{buildroot}/etc/sysconfig
 install -c -m 755 %{SOURCE2} %{buildroot}/etc/sysconfig/iptables-config
+install -c -m 755 %{SOURCE3} %{buildroot}/etc/sysconfig/iptables
 sed -e 's;iptables;ip6tables;g' -e 's;IPTABLES;IP6TABLES;g' < %{SOURCE2} > ip6tables-config
 install -c -m 755 ip6tables-config %{buildroot}/etc/sysconfig/ip6tables-config
 
@@ -126,6 +127,7 @@ fi
 %doc COPYING INSTALL INCOMPATIBILITIES
 %attr(0755,root,root) /etc/rc.d/init.d/iptables
 %config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables-config
+%config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables
 /sbin/iptables*
 /bin/iptables-xml
 %{_mandir}/man8/iptables*
