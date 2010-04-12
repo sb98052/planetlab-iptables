@@ -1,7 +1,7 @@
 #
-# $Id: iproute.spec 7668 2008-01-08 11:49:43Z thierry $
+# $Id$
 #
-%define url $URL: svn+ssh://thierry@svn.planet-lab.org/svn/iproute2/trunk/iproute.spec $
+%define url $URL$
 
 %define name iptables
 %define version 1.4.1.1
