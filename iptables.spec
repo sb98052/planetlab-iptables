@@ -1,7 +1,23 @@
-Name: iptables
+#
+# $Id$
+#
+%define url $URL$
+
+%define name iptables
+%define version 1.4.7
+%define taglevel 1
+
+%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+
+Vendor: PlanetLab
+Packager: PlanetLab Central <support@planet-lab.org>
+Distribution: PlanetLab %{plrelease}
+URL: %(echo %{url} | cut -d ' ' -f 2)
+
 Summary: Tools for managing Linux kernel packet filtering capabilities
-Version: 1.4.7
-Release: 2%{?dist}
+Name: %{name}
+Version: %{version}
+Release: %{release}
 Source: http://www.netfilter.org/projects/iptables/files/%{name}-%{version}.tar.bz2
 Source1: iptables.init
 Source2: iptables-config
