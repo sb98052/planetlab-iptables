@@ -24,7 +24,6 @@ Source2: iptables-config
 Source3: planetlab-config
 Patch1: copy-xid.patch
 Group: System Environment/Base
-URL: http://www.netfilter.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 License: GPLv2
 BuildRequires: libselinux-devel
