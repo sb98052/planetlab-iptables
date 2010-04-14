@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.3.8
-%define taglevel 11
+%define taglevel 12
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -168,6 +168,9 @@ fi
 %endif
 
 %changelog
+* Wed Apr 14 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - iptables-1.3.8-12
+- no change but previous tag had screwed up
+
 * Thu Jan 28 2010 Talip Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - iptables-1.3.8-10
 - tag iptables for f12 & gcc4.4 builds.
 
