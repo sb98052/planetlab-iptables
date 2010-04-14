@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.4.7
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -181,6 +181,9 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Wed Apr 14 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - iptables-1.4.7-2
+- fixed specfile for duplicate URL
+
 * Wed Mar 24 2010 Thomas Woerner <twoerner@redhat.com> 1.4.7-2
 - added default values for IPTABLES_STATUS_VERBOSE and
   IPTABLES_STATUS_LINENUMBERS in init script
