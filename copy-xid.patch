@@ -67,14 +67,6 @@ diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
 index dbfc7c0..db58a1b 100644
 --- a/extensions/libxt_MARK.c
 +++ b/extensions/libxt_MARK.c
-@@ -19,6 +19,7 @@ enum {
- 	XT_MARK_SET=0,
- 	XT_MARK_AND,
- 	XT_MARK_OR,
-+	IPT_MARK_COPYXID,
- };
- 
- struct xt_mark_target_info_v1 {
 @@ -36,13 +37,15 @@ static void MARK_help(void)
  "MARK target options:\n"
  "  --set-mark value                   Set nfmark value\n"
@@ -108,16 +100,6 @@ index dbfc7c0..db58a1b 100644
  "  --xor-mask bits           Binary XOR the nfmark with bits\n"
  "\n");
  }
-@@ -126,6 +131,9 @@ MARK_parse_v1(int c, char **argv, int invert, unsigned int *flags,
- 	case '3':
- 	        markinfo->mode = XT_MARK_OR;
- 		break;
-+	case '4':
-+	        markinfo->mode = IPT_MARK_COPYXID;
-+		break;
- 	default:
- 		return 0;
- 	}
 @@ -194,6 +202,12 @@ static int mark_tg_parse(int c, char **argv, int invert, unsigned int *flags,
  		info->mask = 0;
  		break;
@@ -140,16 +122,6 @@ index dbfc7c0..db58a1b 100644
  }
  
  static void
-@@ -249,6 +263,9 @@ static void MARK_print_v1(const void *ip, const struct xt_entry_target *target,
- 	case XT_MARK_OR: 
- 		printf("MARK or ");
- 		break;
-+	case IPT_MARK_COPYXID: 
-+		printf("MARK copyxid ");
-+		break;
- 	}
- 	print_mark(markinfo->mark);
- }
 @@ -258,7 +275,9 @@ static void mark_tg_print(const void *ip, const struct xt_entry_target *target,
  {
  	const struct xt_mark_tginfo2 *info = (const void *)target->data;
@@ -161,16 +133,6 @@ index dbfc7c0..db58a1b 100644
  		printf("MARK and 0x%x ", (unsigned int)(u_int32_t)~info->mask);
  	else if (info->mark == info->mask)
  		printf("MARK or 0x%x ", info->mark);
-@@ -285,6 +304,9 @@ static void MARK_save_v1(const void *ip, const struct xt_entry_target *target)
- 	case XT_MARK_OR: 
- 		printf("--or-mark ");
- 		break;
-+	case IPT_MARK_COPYXID:
-+		printf("--copy-xid ");
-+		break;
- 	}
- 	print_mark(markinfo->mark);
- }
 @@ -293,7 +315,10 @@ static void mark_tg_save(const void *ip, const struct xt_entry_target *target)
  {
  	const struct xt_mark_tginfo2 *info = (const void *)target->data;
