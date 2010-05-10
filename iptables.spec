@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.4.7
-%define taglevel 3
+%define taglevel 4
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -181,6 +181,9 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Mon May 10 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.7-4
+- Restore iIPTABLES_MODULES list
+
 * Mon May 03 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.7-3
 - drop backward compatibility with older iptables versions as new kernels only support v2
 - remove unused modules from iptables-config file
