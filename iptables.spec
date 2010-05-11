@@ -121,6 +121,7 @@ rm -rf %{buildroot}
 %post
 /sbin/ldconfig
 /sbin/chkconfig --add iptables
+service iptables restart
 
 %postun -p /sbin/ldconfig
 
