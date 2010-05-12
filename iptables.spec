@@ -5,7 +5,7 @@
 
 %define name iptables
 %define version 1.4.7
-%define taglevel 4
+%define taglevel 5
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -182,6 +182,9 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Wed May 12 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.7-5
+- Restart iptables service after package upgrades
+
 * Mon May 10 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.7-4
 - Restore iIPTABLES_MODULES list
 
