@@ -4,7 +4,7 @@
 %define url $URL$
 
 %define name iptables
-%define version 1.4.8
+%define version 1.4.9
 %define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
