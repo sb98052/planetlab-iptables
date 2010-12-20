@@ -1,14 +1,14 @@
-commit 12aa2a62d05523e66b104b3f6840c592309d3a05
+commit a796550d217a8fc06829cac7bad72ac1fe34f85d
 Author: S.Çağlar Onur <caglar@cs.princeton.edu>
 Date:   Sat Apr 3 01:17:41 2010 -0400
 
     copy-xid
 
 diff --git a/extensions/libxt_CLASSIFY.c b/extensions/libxt_CLASSIFY.c
-index 82b8f4e..09c15c0 100644
+index ab5127c..477790e 100644
 --- a/extensions/libxt_CLASSIFY.c
 +++ b/extensions/libxt_CLASSIFY.c
-@@ -15,11 +15,13 @@ CLASSIFY_help(void)
+@@ -16,11 +16,13 @@ CLASSIFY_help(void)
  {
  	printf(
  "CLASSIFY target options:\n"
@@ -18,12 +18,12 @@ index 82b8f4e..09c15c0 100644
  }
  
  static const struct option CLASSIFY_opts[] = {
- 	{ "set-class", 1, NULL, '1' },
-+	{ "add-mark", 0, 0, '2' },
- 	{ .name = NULL }
+ 	{.name = "set-class", .has_arg = true, .val = '1'},
++	{.name = "add-mark",  .has_arg = true, .val = '2'},
+ 	XT_GETOPT_TABLEEND,
  };
  
-@@ -42,6 +44,8 @@ CLASSIFY_parse(int c, char **argv, int invert, unsigned int *flags,
+@@ -43,6 +45,8 @@ CLASSIFY_parse(int c, char **argv, int invert, unsigned int *flags,
  	struct xt_classify_target_info *clinfo
  		= (struct xt_classify_target_info *)(*target)->data;
  
@@ -32,7 +32,7 @@ index 82b8f4e..09c15c0 100644
  	switch (c) {
  	case '1':
  		if (CLASSIFY_string_to_priority(optarg, &clinfo->priority))
-@@ -53,6 +57,10 @@ CLASSIFY_parse(int c, char **argv, int invert, unsigned int *flags,
+@@ -54,6 +58,10 @@ CLASSIFY_parse(int c, char **argv, int invert, unsigned int *flags,
  		*flags = 1;
  		break;
  
@@ -43,7 +43,7 @@ index 82b8f4e..09c15c0 100644
  	default:
  		return 0;
  	}
-@@ -83,6 +91,9 @@ CLASSIFY_print(const void *ip,
+@@ -84,6 +92,9 @@ CLASSIFY_print(const void *ip,
  		(const struct xt_classify_target_info *)target->data;
  	printf("CLASSIFY set ");
  	CLASSIFY_print_class(clinfo->priority, numeric);
@@ -53,7 +53,7 @@ index 82b8f4e..09c15c0 100644
  }
  
  static void
-@@ -93,6 +104,9 @@ CLASSIFY_save(const void *ip, const struct xt_entry_target *target)
+@@ -94,6 +105,9 @@ CLASSIFY_save(const void *ip, const struct xt_entry_target *target)
  
  	printf("--set-class %.4x:%.4x ",
  	       TC_H_MAJ(clinfo->priority)>>16, TC_H_MIN(clinfo->priority));
@@ -64,9 +64,17 @@ index 82b8f4e..09c15c0 100644
  
  static struct xtables_target classify_target = { 
 diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
-index dbfc7c0..db58a1b 100644
+index 39996d0..09e13ca 100644
 --- a/extensions/libxt_MARK.c
 +++ b/extensions/libxt_MARK.c
+@@ -19,6 +19,7 @@ enum {
+ 	XT_MARK_SET=0,
+ 	XT_MARK_AND,
+ 	XT_MARK_OR,
++	IPT_MARK_COPYXID,
+ };
+ 
+ struct xt_mark_target_info_v1 {
 @@ -36,13 +37,15 @@ static void MARK_help(void)
  "MARK target options:\n"
  "  --set-mark value                   Set nfmark value\n"
@@ -77,11 +85,11 @@ index dbfc7c0..db58a1b 100644
  }
  
  static const struct option MARK_opts[] = {
- 	{ "set-mark", 1, NULL, '1' },
- 	{ "and-mark", 1, NULL, '2' },
- 	{ "or-mark", 1, NULL, '3' },
-+	{ "copy-xid", 1, 0, '4' },
- 	{ .name = NULL }
+ 	{.name = "set-mark", .has_arg = true, .val = '1'},
+ 	{.name = "and-mark", .has_arg = true, .val = '2'},
+ 	{.name = "or-mark",  .has_arg = true, .val = '3'},
++	{.name = "copy-xid", .has_arg = true, .val = '4'},
+ 	XT_GETOPT_TABLEEND,
  };
  
 @@ -52,6 +55,7 @@ static const struct option mark_tg_opts[] = {
@@ -89,7 +97,7 @@ index dbfc7c0..db58a1b 100644
  	{.name = "or-mark",   .has_arg = true, .val = '|'},
  	{.name = "xor-mark",  .has_arg = true, .val = '^'},
 +	{.name = "copy-xid",  .has_arg = true, .val = '%'},
- 	{ .name = NULL }
+ 	XT_GETOPT_TABLEEND,
  };
  
 @@ -63,6 +67,7 @@ static void mark_tg_help(void)
@@ -100,6 +108,16 @@ index dbfc7c0..db58a1b 100644
  "  --xor-mask bits           Binary XOR the nfmark with bits\n"
  "\n");
  }
+@@ -126,6 +131,9 @@ MARK_parse_v1(int c, char **argv, int invert, unsigned int *flags,
+ 	case '3':
+ 	        markinfo->mode = XT_MARK_OR;
+ 		break;
++	case '4':
++	        markinfo->mode = IPT_MARK_COPYXID;
++		break;
+ 	default:
+ 		return 0;
+ 	}
 @@ -194,6 +202,12 @@ static int mark_tg_parse(int c, char **argv, int invert, unsigned int *flags,
  		info->mask = 0;
  		break;
@@ -122,6 +140,16 @@ index dbfc7c0..db58a1b 100644
  }
  
  static void
+@@ -249,6 +263,9 @@ static void MARK_print_v1(const void *ip, const struct xt_entry_target *target,
+ 	case XT_MARK_OR: 
+ 		printf("MARK or ");
+ 		break;
++	case IPT_MARK_COPYXID: 
++		printf("MARK copyxid ");
++		break;
+ 	}
+ 	print_mark(markinfo->mark);
+ }
 @@ -258,7 +275,9 @@ static void mark_tg_print(const void *ip, const struct xt_entry_target *target,
  {
  	const struct xt_mark_tginfo2 *info = (const void *)target->data;
@@ -133,6 +161,16 @@ index dbfc7c0..db58a1b 100644
  		printf("MARK and 0x%x ", (unsigned int)(u_int32_t)~info->mask);
  	else if (info->mark == info->mask)
  		printf("MARK or 0x%x ", info->mark);
+@@ -285,6 +304,9 @@ static void MARK_save_v1(const void *ip, const struct xt_entry_target *target)
+ 	case XT_MARK_OR: 
+ 		printf("--or-mark ");
+ 		break;
++	case IPT_MARK_COPYXID:
++		printf("--copy-xid ");
++		break;
+ 	}
+ 	print_mark(markinfo->mark);
+ }
 @@ -293,7 +315,10 @@ static void mark_tg_save(const void *ip, const struct xt_entry_target *target)
  {
  	const struct xt_mark_tginfo2 *info = (const void *)target->data;
