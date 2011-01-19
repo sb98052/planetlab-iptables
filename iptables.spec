@@ -1,8 +1,3 @@
-#
-# $Id$
-#
-%define url $URL$
-
 %define name iptables
 %define version 1.4.9
 %define taglevel 0
@@ -12,7 +7,7 @@
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
-URL: %(echo %{url} | cut -d ' ' -f 2)
+URL: %{SCMURL}
 
 Summary: Tools for managing Linux kernel packet filtering capabilities
 Name: %{name}
@@ -30,6 +25,7 @@ BuildRequires: libselinux-devel
 BuildRequires: kernel-headers
 Conflicts: kernel < 2.4.20
 Requires(post): chkconfig
+Requires(post): service
 Requires(preun): chkconfig
 
 %description
