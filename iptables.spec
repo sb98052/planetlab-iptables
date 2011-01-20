@@ -25,7 +25,7 @@ BuildRequires: libselinux-devel
 BuildRequires: kernel-headers
 Conflicts: kernel < 2.4.20
 Requires(post): chkconfig
-Requires(post): service
+Requires(post): initscripts
 Requires(preun): chkconfig
 
 %description
