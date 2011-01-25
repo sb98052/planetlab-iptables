@@ -1,8 +1,3 @@
-#
-# $Id$
-#
-%define url $URL$
-
 %define name iptables
 %define version 1.4.10
 %define taglevel 0
@@ -12,7 +7,7 @@
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
-URL: %(echo %{url} | cut -d ' ' -f 2)
+URL: %{SCMURL}
 
 Summary: Tools for managing Linux kernel packet filtering capabilities
 Name: %{name}
@@ -30,6 +25,7 @@ BuildRequires: libselinux-devel
 BuildRequires: kernel-headers
 Conflicts: kernel < 2.4.20
 Requires(post): chkconfig
+Requires(post): initscripts
 Requires(preun): chkconfig
 
 %description
@@ -182,6 +178,9 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Sun Jan 23 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - iptables-1.4.9-1
+- add requires initscripts in deps
+
 * Wed May 12 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.7-5
 - Restart iptables service after package upgrades
 
