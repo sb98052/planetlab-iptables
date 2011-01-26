@@ -1,6 +1,6 @@
 %define name iptables
 %define version 1.4.10
-%define taglevel 0
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -178,6 +178,9 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Wed Jan 26 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.10-1
+- Fix incorrect sha1sum
+
 * Sun Jan 23 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - iptables-1.4.9-1
 - add requires initscripts in deps
 
