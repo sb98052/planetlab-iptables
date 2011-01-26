@@ -6,7 +6,7 @@ SHA1SUM			:= sha1sum
 
 ALL			+= iptables
 iptables-URL		:= http://www.netfilter.org/projects/iptables/files/iptables-1.4.10.tar.bz2
-iptables-SHA1SUM	:= c961b58c57cb99b10f5bb753bf3b436c0df05c7c
+iptables-SHA1SUM	:= 8190b8c9714a3eec825317e8ac1deeb3d11c6d29
 iptables		:= $(notdir $(iptables-URL))
 
 all: $(ALL)
