@@ -1,6 +1,6 @@
 %define name iptables
 %define version 1.4.10
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -178,6 +178,9 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Thu Jan 27 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.10-2
+- Fix the patch
+
 * Wed Jan 26 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.10-1
 - Fix incorrect sha1sum
 
