@@ -19,7 +19,7 @@ index ab5127c..477790e 100644
  
  static const struct option CLASSIFY_opts[] = {
  	{.name = "set-class", .has_arg = true, .val = '1'},
-+	{.name = "add-mark",  .has_arg = true, .val = '2'},
++	{.name = "add-mark",  .has_arg = false, .val = '2'},
  	XT_GETOPT_TABLEEND,
  };
  
