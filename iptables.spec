@@ -117,7 +117,7 @@ rm -rf %{buildroot}
 %post
 /sbin/ldconfig
 /sbin/chkconfig --add iptables
-DEFAULT_IFACE=$(ip route show default | awk '/default/ {print $5}'
+DEFAULT_IFACE=$(ip route show default | awk '/default/ {print $5}')
 sed -i -e "s;__eth;$DEFAULT_IFACE;g" /etc/sysconfig/iptables 
 service iptables restart
 
