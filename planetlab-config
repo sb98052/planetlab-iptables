@@ -18,5 +18,5 @@ COMMIT
 -A INPUT -j MARK --copy-xid 0x0
 -A POSTROUTING -j MARK --copy-xid 0x0 
 -A POSTROUTING -j CLASSIFY --set-class 0001:1000 --add-mark
--A POSTROUTING -o eth0 -j ULOG --ulog-cprange 54 --ulog-qthreshold 16
+-A POSTROUTING -o __eth -j ULOG --ulog-cprange 54 --ulog-qthreshold 16
 COMMIT
