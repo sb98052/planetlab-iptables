@@ -119,8 +119,6 @@ rm -rf %{buildroot}
 /sbin/chkconfig --add iptables
 DEFAULT_IFACE=$(ip route show default | awk '/default/ {print $5}')
 sed -i -e "s;__eth;$DEFAULT_IFACE;g" /etc/sysconfig/iptables 
-mv -f /etc/rc.d/init.d/iptables.rpmsave /etc/rc.d/init.d/iptables
-mv -f /etc/sysconfig/iptables-config.rpmnew /etc/sysconfig/iptables-config
 service iptables restart
 
 %postun -p /sbin/ldconfig
@@ -142,8 +140,8 @@ fi
 %defattr(-,root,root)
 %doc COPYING INSTALL INCOMPATIBILITIES
 %attr(0755,root,root) /etc/rc.d/init.d/iptables
-%config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables-config
-%config(noreplace) %attr(0600,root,root) /etc/sysconfig/iptables
+%config %attr(0600,root,root) /etc/sysconfig/iptables-config
+%config %attr(0600,root,root) /etc/sysconfig/iptables
 /sbin/iptables*
 /bin/iptables-xml
 %{_mandir}/man8/iptables*
