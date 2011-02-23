@@ -1,6 +1,6 @@
 %define name iptables
 %define version 1.4.10
-%define taglevel 2
+%define taglevel 3
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -180,6 +180,9 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Wed Feb 23 2011 S.Çağlar Onur <caglar@verivue.com> - iptables-1.4.10-3
+- Remove ugly hack for config files
+
 * Thu Jan 27 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - iptables-1.4.10-2
 - Fix the patch
 
