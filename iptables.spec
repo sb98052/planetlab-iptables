@@ -1,6 +1,6 @@
 %define name iptables
 %define version 1.4.10
-%define taglevel 3
+%define taglevel 4
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -180,6 +180,9 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Thu Mar 24 2011 S.Çağlar Onur <caglar@verivue.com> - iptables-1.4.10-4
+- Don't start iptables service on build time
+
 * Wed Feb 23 2011 S.Çağlar Onur <caglar@verivue.com> - iptables-1.4.10-3
 - Remove ugly hack for config files
 
