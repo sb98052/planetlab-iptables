@@ -14,7 +14,6 @@ Name: %{name}
 Version: %{version}
 Release: %{release}
 Source: http://www.netfilter.org/projects/iptables/files/%{name}-%{version}.tar.bz2
-Source: http://ipset.netfilter.org/ipset-4.5.tar.bz2
 Source1: iptables.init
 Source2: iptables-config
 Source3: planetlab-config

@@ -4,13 +4,10 @@
 WEBFETCH		:= wget
 SHA1SUM			:= sha1sum
 
-ALL			+= iptables ipset
+ALL			+= iptables
 iptables-URL		:= http://www.netfilter.org/projects/iptables/files/iptables-1.4.10.tar.bz2
 iptables-SHA1SUM	:= 8190b8c9714a3eec825317e8ac1deeb3d11c6d29
-ipset-URL		:= http://ipset.netfilter.org/ipset-4.5.tar.bz2
-ipset-SHA1SUM	:= 696a5cd96459c8fb028f0dfb9927a5c4f183d28b
 iptables		:= $(notdir $(iptables-URL))
-ipset		:= $(notdir $(ipset-URL))
 
 all: $(ALL)
 .PHONY: all
