@@ -1,6 +1,6 @@
 %define name iptables
 %define version 1.4.10
-%define taglevel 4
+%define taglevel 5
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -180,6 +180,13 @@ fi
 %{_libdir}/pkgconfig/xtables.pc
 
 %changelog
+* Tue Aug 09 2011 Sapan Bhatia <sapanb@cs.princeton.edu> - iptables-1.4.10-5
+- Adding a recently abused (=received experimental traffic from planetlab) node to a global iptables blacklist. I will be
+- implementing this mechanism more formally
+- using
+- iptables in the coming days. Unfortunately, because of the complexity of the recipient network we are unable to
+- determine a comprehensive set of the slices responsible in this case, so I am adding this temporary hack for now.
+
 * Thu Mar 24 2011 S.Çağlar Onur <caglar@verivue.com> - iptables-1.4.10-4
 - Don't start iptables service on build time
 
