@@ -1,6 +1,7 @@
 %define name iptables
-%define version 1.4.10
-%define taglevel 5
+%define version 1.4.12
+%define subversion .1
+%define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -13,7 +14,7 @@ Summary: Tools for managing Linux kernel packet filtering capabilities
 Name: %{name}
 Version: %{version}
 Release: %{release}
-Source: http://www.netfilter.org/projects/iptables/files/%{name}-%{version}.tar.bz2
+Source: http://www.netfilter.org/projects/iptables/files/%{name}-%{version}%{subversion}.tar.bz2
 Source1: iptables.init
 Source2: iptables-config
 Source3: planetlab-config
