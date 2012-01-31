@@ -6,7 +6,7 @@ ALL			+= iptables
 iptables-URL1		:= http://mirror.onelab.eu/third-party/iptables-1.4.12.1.tar.bz2
 iptables-URL2		:= http://planet-lab.org/third-party/iptables-1.4.12.1.tar.bz2
 iptables-SHA1SUM	:= 86022c3b5129ad7105f5087ec1349e99cc5a9728
-iptables		:= $(notdir $(iptables-URL))
+iptables		:= $(notdir $(iptables-URL1))
 
 ##############################
 define download_target

@@ -4,6 +4,7 @@
 %define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define actual_name %{name}-%{version}%{subversion}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -14,7 +15,7 @@ Summary: Tools for managing Linux kernel packet filtering capabilities
 Name: %{name}
 Version: %{version}
 Release: %{release}
-Source: http://www.netfilter.org/projects/iptables/files/%{name}-%{version}%{subversion}.tar.bz2
+Source: http://www.netfilter.org/projects/iptables/files/%{actual_name}.tar.bz2
 Source1: iptables.init
 Source2: iptables-config
 Source3: planetlab-config
@@ -63,7 +64,7 @@ The iptc interface is upstream marked as not public. The interface is not
 stable and may change with every new version. It is therefore unsupported.
 
 %prep
-%setup -q
+%setup -q -n %{actual_name}
 %patch1 -p1 
 
 %build
