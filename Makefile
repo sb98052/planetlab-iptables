@@ -1,23 +1,21 @@
-# $Id$
-# $URL$
 #
 WEBFETCH		:= wget
 SHA1SUM			:= sha1sum
 
 ALL			+= iptables
-iptables-URL		:= http://www.netfilter.org/projects/iptables/files/iptables-1.4.10.tar.bz2
-iptables-SHA1SUM	:= 8190b8c9714a3eec825317e8ac1deeb3d11c6d29
+iptables-URL1		:= http://mirror.onelab.eu/third-party/iptables-1.4.12.1.tar.bz2
+iptables-URL2		:= http://planet-lab.org/third-party/iptables-1.4.12.1.tar.bz2
+iptables-SHA1SUM	:= 86022c3b5129ad7105f5087ec1349e99cc5a9728
 iptables		:= $(notdir $(iptables-URL))
-
-all: $(ALL)
-.PHONY: all
 
 ##############################
 define download_target
 $(1): $($(1))
-.PHONY: $($(1))
+.PHONY: $(1)
 $($(1)): 
-	@if [ ! -e "$($(1))" ] ; then echo "$(WEBFETCH) $($(1)-URL)" ; $(WEBFETCH) $($(1)-URL) ; fi
+	@if [ ! -e "$($(1))" ] ; then \
+	{ echo Using primary; echo "$(WEBFETCH) $($(1)-URL1)" ; $(WEBFETCH) $($(1)-URL1) ; } || \
+	{ echo Using secondary; echo "$(WEBFETCH) $($(1)-URL2)" ; $(WEBFETCH) $($(1)-URL2) ; } ; fi
 	@if [ ! -e "$($(1))" ] ; then echo "Could not download source file: $($(1)) does not exist" ; exit 1 ; fi
 	@if test "$$$$($(SHA1SUM) $($(1)) | awk '{print $$$$1}')" != "$($(1)-SHA1SUM)" ; then \
 	    echo "sha1sum of the downloaded $($(1)) does not match the one from 'Makefile'" ; \
